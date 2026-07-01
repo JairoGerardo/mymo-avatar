@@ -1,0 +1,13 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "../../docs/api",
+  "highlightLanguages": ["typescript", "javascript", "html", "vue"],
+  "name": "@mymo/avatar",
+  "readme": "../../README.md",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "navigationLinks": {
+    "GitHub": "https://github.com/mymo/mymo-avatar"
+  }
+}

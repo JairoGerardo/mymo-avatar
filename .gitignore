@@ -1,0 +1,46 @@
+# Build outputs
+dist
+*.d.ts.map
+*.tsbuildinfo
+
+# Package manager
+node_modules
+.pnpm-store
+pnpm-debug.log*
+
+# Turbo
+.turbo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Test / coverage
+coverage/
+.vitest-cache/
+
+# Docs generados
+docs/api/
+
+# 3D models (distribuir por separado)
+*.glb
+*.gltf
+!examples/vanilla/public/*.glb

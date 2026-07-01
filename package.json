@@ -1,0 +1,27 @@
+{
+  "name": "mymo-avatar-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Mymo Avatar — monorepo root",
+  "scripts": {
+    "build": "pnpm --filter @mymo/avatar build",
+    "build:all": "pnpm --filter @mymo/avatar build && pnpm --filter \"!@mymo/avatar\" --filter \"!@mymo/example-*\" -r build",
+    "docs": "pnpm --filter @mymo/avatar docs",
+    "dev": "pnpm --filter @mymo/avatar dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\" --ignore-path .prettierignore",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

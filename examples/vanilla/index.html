@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mymo Avatar — Demo</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1117 100%);
+        min-height: 100vh;
+        color: #e0e0ff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #a78bfa, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        font-size: 0.9rem;
+        color: #888;
+        margin-top: -1.5rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        max-width: 600px;
+      }
+
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: center;
+      }
+
+      .group-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #666;
+      }
+
+      .btn-row {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      button {
+        padding: 0.45rem 0.9rem;
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        border-radius: 8px;
+        background: rgba(167, 139, 250, 0.08);
+        color: #c4b5fd;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      button:hover {
+        background: rgba(167, 139, 250, 0.2);
+        border-color: rgba(167, 139, 250, 0.6);
+        color: #fff;
+      }
+
+      button:active {
+        transform: scale(0.96);
+      }
+
+      #log {
+        font-size: 0.75rem;
+        color: #555;
+        font-family: monospace;
+        height: 1.2rem;
+        transition: color 0.3s;
+      }
+
+      #log.active {
+        color: #a78bfa;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mymo Avatar</h1>
+    <p class="subtitle">SDK Demo — lightweight animated avatar</p>
+
+    <div class="controls">
+      <div class="group">
+        <span class="group-label">Expressions</span>
+        <div class="btn-row">
+          <button data-action="smile">😊 smile</button>
+          <button data-action="happy">😄 happy</button>
+          <button data-action="sad">😢 sad</button>
+          <button data-action="angry">😠 angry</button>
+          <button data-action="surprised">😲 surprised</button>
+          <button data-action="thinking">🤔 thinking</button>
+          <button data-action="confused">😕 confused</button>
+          <button data-action="sleep">😴 sleep</button>
+          <button data-action="idle">😐 idle</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">Gestures</span>
+        <div class="btn-row">
+          <button data-action="wave">👋 wave</button>
+          <button data-action="nod">↕️ nod</button>
+          <button data-action="dance">💃 dance</button>
+          <button data-action="jump">⬆️ jump</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">States</span>
+        <div class="btn-row">
+          <button data-action="loading">⏳ loading</button>
+          <button data-action="success">✅ success</button>
+          <button data-action="error">❌ error</button>
+          <button data-action="warning">⚠️ warning</button>
+          <button data-action="listening">👂 listening</button>
+          <button data-action="typing">⌨️ typing</button>
+          <button data-action="processing">⚙️ processing</button>
+          <button data-action="complete">🏁 complete</button>
+          <button data-action="clearState">✖ clear</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">Look</span>
+        <div class="btn-row">
+          <button data-action="lookAtMouse">👁️ follow mouse</button>
+          <button data-action="lookForward">⬛ look forward</button>
+          <button data-action="randomLook">🔀 random look</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">Speech</span>
+        <div class="btn-row">
+          <button data-action="talk">🗣️ talk</button>
+          <button data-action="stopTalking">🔇 stop</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">Position</span>
+        <div class="btn-row">
+          <button data-action="pos-bottom-right">↘ bottom-right</button>
+          <button data-action="pos-bottom-left">↙ bottom-left</button>
+          <button data-action="pos-top-right">↗ top-right</button>
+          <button data-action="pos-top-left">↖ top-left</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="group-label">Framing</span>
+        <div class="btn-row">
+          <button data-action="frame-full">full</button>
+          <button data-action="frame-half">half</button>
+          <button data-action="frame-bust">bust</button>
+          <button data-action="frame-face">face</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="amp-wrap" style="display:none; align-items:center; gap:0.5rem; width:260px;">
+      <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
+      <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
+        <div id="amp-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#a78bfa,#60a5fa); border-radius:3px; transition:width 0.05s ease;"></div>
+      </div>
+    </div>
+
+    <div id="log">Initializing avatar...</div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

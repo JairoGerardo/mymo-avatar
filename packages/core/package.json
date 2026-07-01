@@ -1,0 +1,51 @@
+{
+  "name": "@mymo/avatar",
+  "version": "0.1.0",
+  "description": "Lightweight animated avatar SDK for any web application",
+  "keywords": [
+    "avatar",
+    "animation",
+    "3d",
+    "sdk",
+    "webgl",
+    "three.js"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/mymo-avatar.cjs",
+  "module": "./dist/mymo-avatar.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mymo-avatar.js",
+      "require": "./dist/mymo-avatar.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.json --emitDeclarationOnly",
+    "dev": "vite build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "docs": "typedoc --options typedoc.json"
+  },
+  "peerDependencies": {
+    "three": ">=0.165.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.165.0",
+    "three": "^0.165.0",
+    "typedoc": "^0.28.19",
+    "vite": "^5.4.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "^3.5.4"
+  }
+}

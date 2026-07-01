@@ -1,0 +1,44 @@
+import type { LoadedModel } from "../loader/AssetLoader.js";
+import type { Expression, Gesture } from "../types/index.js";
+export declare class AnimationEngine {
+    private mixer;
+    private clips;
+    private currentAction;
+    private idleAction;
+    private morphMeshes;
+    private headBone;
+    private headBoneRestWorldQ;
+    private lookCurrentDelta;
+    private lookTargetDelta;
+    private randomLookTimeout;
+    private lookSettled;
+    private _tmpParentWorldQInv;
+    private _tmpDesiredWorldQ;
+    private blinkTimer;
+    private idleTimer;
+    init(model: LoadedModel): void;
+    update(delta: number): void;
+    play(name: string): void;
+    stop(): void;
+    private _transitionTo;
+    startIdle(intervalMs?: number): void;
+    stopIdle(): void;
+    private _randomIdleExpression;
+    startBlink(intervalMs?: number): void;
+    stopBlink(): void;
+    private _doBlink;
+    setExpression(expression: Expression, intensity?: number): void;
+    setMouthMorph(value: number): void;
+    playGesture(gesture: Gesture): void;
+    lookAt(dx: number, dy: number): void;
+    lookForward(): void;
+    startRandomLook(): void;
+    stopRandomLook(): void;
+    stopLook(): void;
+    hasHeadBone(): boolean;
+    private _setMorphTarget;
+    private _findClip;
+    private _delay;
+    dispose(): void;
+}
+//# sourceMappingURL=AnimationEngine.d.ts.map
