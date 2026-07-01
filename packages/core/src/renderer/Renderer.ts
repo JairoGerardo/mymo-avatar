@@ -81,7 +81,7 @@ export class Renderer {
     if (options.draggable) this._makeDraggable()
   }
 
-  private _applyTheme(theme: string, size: number): void {
+  private _applyTheme(theme: string, _size: number): void {
     const s = this.container.style
     if (theme === "dark") {
       s.background = "radial-gradient(circle at 40% 35%, #2a2a4a 0%, #0d0d1a 100%)"
