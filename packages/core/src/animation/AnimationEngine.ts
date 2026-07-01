@@ -155,21 +155,64 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
   },
 
   jump: {
-    duration: 1.2,
+    duration: 1.5,
     fn(t, vrm) {
-      const h     = vrm.humanoid
-      const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
-      const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
-      const rArm  = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
-      const lArm  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+      const h      = vrm.humanoid
+      const hips   = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
+      const spine  = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
+      const chest  = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
+      const rArm   = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm   = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+      const rThigh = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg)
+      const lThigh = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg)
+      const rShin  = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerLeg)
+      const lShin  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerLeg)
+      const rFoot  = h.getNormalizedBoneNode(VRMHumanBoneName.RightFoot)
+      const lFoot  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot)
 
-      const bounce   = Math.abs(Math.sin(t * Math.PI * 1.5)) * Math.exp(-t * 3)
-      if (spine) spine.rotation.x = lerp(0, -0.1, bounce * 2)
-      if (chest) chest.rotation.x = lerp(0.015 * Math.sin(t * 1.8), -0.08, bounce * 2)
+      // 0.00–0.22 crouch, 0.22–0.55 air up, 0.55–0.72 land, 0.72–1.00 recover
+      let hipY = 0, kneeW = 0, footW = 0, armLift = 0, spineX = 0
 
-      const armLift = Math.max(0, Math.sin(t * Math.PI)) * 0.4
-      if (rArm) rArm.rotation.z =  Math.PI / 5 - armLift
-      if (lArm) lArm.rotation.z = -Math.PI / 5 + armLift
+      if (t < 0.22) {
+        const p = smoothstep(t / 0.22)
+        hipY   = -0.12 * p
+        kneeW  = p
+        footW  = -p * 0.85         // counter-rotate to keep feet flat on ground
+        spineX = p * 0.06
+      } else if (t < 0.55) {
+        const p = smoothstep((t - 0.22) / 0.33)
+        hipY    = lerp(-0.12, 0.22, p)
+        kneeW   = lerp(1, 0, p)
+        footW   = lerp(-0.85, 0.6, p) // feet go from flat → tiptoe in air
+        armLift = p * 0.50
+        spineX  = lerp(0.06, -0.05, p)
+      } else if (t < 0.72) {
+        const p = smoothstep((t - 0.55) / 0.17)
+        hipY    = lerp(0.22, -0.07, p)
+        kneeW   = p * 0.75
+        footW   = lerp(0.6, -0.6, p)  // feet flatten on landing impact
+        armLift = lerp(0.50, 0, p)
+        spineX  = lerp(-0.05, 0.07, p)
+      } else {
+        const p = smoothstep((t - 0.72) / 0.28)
+        hipY   = lerp(-0.07, 0, p)
+        kneeW  = lerp(0.75, 0, p)
+        footW  = lerp(-0.6, 0, p)     // return to neutral
+        spineX = lerp(0.07, 0, p)
+      }
+
+      const hipsRestY = (vrm.scene.userData["hipsRestY"] as number) ?? 0
+      if (hips)   hips.position.y = hipsRestY + hipY
+      if (rThigh) { rThigh.rotation.x = -kneeW * 0.35; rThigh.rotation.z = 0; rThigh.rotation.y = 0 }
+      if (lThigh) { lThigh.rotation.x = -kneeW * 0.35; lThigh.rotation.z = 0; lThigh.rotation.y = 0 }
+      if (rShin)  { rShin.rotation.x  =  kneeW * 1.2;  rShin.rotation.z  = 0; rShin.rotation.y  = 0 }
+      if (lShin)  { lShin.rotation.x  =  kneeW * 1.2;  lShin.rotation.z  = 0; lShin.rotation.y  = 0 }
+      if (rFoot)  { rFoot.rotation.x  =  footW;        rFoot.rotation.z  = 0; rFoot.rotation.y  = 0 }
+      if (lFoot)  { lFoot.rotation.x  =  footW;        lFoot.rotation.z  = 0; lFoot.rotation.y  = 0 }
+      if (spine)  spine.rotation.x = spineX
+      if (chest)  chest.rotation.x = spineX * 0.4
+      if (rArm)   rArm.rotation.z  =  Math.PI / 5 - armLift
+      if (lArm)   lArm.rotation.z  = -Math.PI / 5 + armLift
     },
   },
 
@@ -587,11 +630,17 @@ export class AnimationEngine {
     const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
     if (rArm) rArm.rotation.z =  Math.PI / 5
     if (lArm) lArm.rotation.z = -Math.PI / 5
+    // Save natural hips Y so gestures can offset from it without breaking idle pose
+    const hips = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
+    if (hips) this.vrm.scene.userData["hipsRestY"] = hips.position.y
   }
 
   private _updateVRMProceduralIdle(t: number): void {
     if (!this.vrm) return
     const h = this.vrm.humanoid
+    // Restore hips to natural rest Y in case a gesture displaced it
+    const hips = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
+    if (hips) hips.position.y = (this.vrm.scene.userData["hipsRestY"] as number) ?? 0
     // A-pose arms — must be set every frame before vrm.update() processes them
     const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
     const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
