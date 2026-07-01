@@ -104,10 +104,13 @@ const ACTIONS: Record<string, ActionFn> = {
   sleep:     () => avatar.sleep(),
   idle:      () => avatar.idle(),
   // Gestures
-  wave:  () => avatar.wave(),
-  nod:   () => avatar.nod(),
-  dance: () => avatar.dance(),
-  jump:  () => avatar.jump(),
+  wave:      () => avatar.wave(),
+  nod:       () => avatar.nod(),
+  shakeHead: () => avatar.shakeHead(),
+  point:     () => avatar.point(),
+  clap:      () => avatar.clap(),
+  jump:      () => avatar.jump(),
+  dance:     () => avatar.dance(),
   // States
   loading:    () => avatar.loading(),
   success:    () => avatar.success(),

@@ -3,6 +3,190 @@ import { VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 import type { LoadedModel } from "../loader/AssetLoader.js"
 import type { Expression, Gesture } from "../types/index.js"
 
+// ── Math helpers ──────────────────────────────────────────────────────────────
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t
+}
+
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t)
+}
+
+function clamp01(t: number): number {
+  return Math.max(0, Math.min(1, t))
+}
+
+// ── VRM Procedural Gesture Definitions ───────────────────────────────────────
+
+type GestureFn = (t: number, vrm: VRM) => void
+
+const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
+  wave: {
+    duration: 3.0,
+    fn(t, vrm) {
+      const h         = vrm.humanoid
+      const rArm      = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const rForearm  = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
+      const rHand     = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
+      const lArm      = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      // raise (0–0.25) → wave (0.25–0.80) → lower (0.80–1.0)
+      const raiseW = smoothstep(clamp01(t / 0.25))
+      const lowerW = t > 0.80 ? smoothstep((t - 0.80) / 0.20) : 0
+      const poseW  = raiseW * (1 - lowerW)
+
+      // Upper arm: ~30° above horizontal — hand ends up near ear/face level
+      if (rArm) {
+        rArm.rotation.z = lerp(Math.PI / 5, -Math.PI / 6, poseW)
+        rArm.rotation.x = 0
+        rArm.rotation.y = 0
+      }
+      // Shared wave phase so forearm and hand move in sync
+      const wavePhase = t >= 0.25 && t <= 0.80
+        ? Math.sin((t - 0.25) / 0.55 * Math.PI * 4)
+        : 0
+
+      // Elbow bent ~70°, supinate palm forward — forearm sways gently with the wave
+      if (rForearm) {
+        rForearm.rotation.z = lerp(0, -1.35 + wavePhase * 0.12, poseW)
+        rForearm.rotation.y = lerp(0,  Math.PI / 2, poseW)
+        rForearm.rotation.x = 0
+      }
+      // Hand rocks side-to-side in sync with forearm sway
+      if (rHand) {
+        rHand.rotation.y = wavePhase * 0.4 * poseW
+        rHand.rotation.x = 0
+        rHand.rotation.z = 0
+      }
+
+      if (lArm) lArm.rotation.z = -Math.PI / 5
+    },
+  },
+
+  nod: {
+    duration: 1.8,
+    fn(t, vrm) {
+      const h    = vrm.humanoid
+      const neck = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
+      const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const fade = t > 0.85 ? (1 - t) / 0.15 : 1
+      if (neck) neck.rotation.x = 0.32 * Math.max(0, Math.sin(t * Math.PI * 2)) * fade
+
+      if (rArm) rArm.rotation.z =  Math.PI / 5
+      if (lArm) lArm.rotation.z = -Math.PI / 5
+    },
+  },
+
+  shakeHead: {
+    duration: 1.8,
+    fn(t, vrm) {
+      const h    = vrm.humanoid
+      const neck = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
+      const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const fade = t > 0.85 ? (1 - t) / 0.15 : 1
+      if (neck) neck.rotation.y = 0.35 * Math.sin(t * Math.PI * 2.5) * fade
+
+      if (rArm) rArm.rotation.z =  Math.PI / 5
+      if (lArm) lArm.rotation.z = -Math.PI / 5
+    },
+  },
+
+  point: {
+    duration: 2.0,
+    fn(t, vrm) {
+      const h        = vrm.humanoid
+      const rArm     = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
+      const lArm     = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      let w: number
+      if      (t < 0.20)  w = smoothstep(t / 0.20)
+      else if (t < 0.75)  w = 1
+      else                w = smoothstep(1 - (t - 0.75) / 0.25)
+
+      if (rArm) {
+        rArm.rotation.z = lerp(Math.PI / 5, -Math.PI / 6, w)
+        rArm.rotation.x = lerp(0, -0.25, w)
+      }
+      if (rForearm) rForearm.rotation.x = lerp(0, -0.15, w)
+      if (lArm)     lArm.rotation.z     = -Math.PI / 5
+    },
+  },
+
+  clap: {
+    duration: 2.0,
+    fn(t, vrm) {
+      const h        = vrm.humanoid
+      const rArm     = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm     = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+      const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
+      const lForearm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm)
+
+      const enter = smoothstep(clamp01(t / 0.15))
+      const exit  = t > 0.85 ? smoothstep((t - 0.85) / 0.15) : 0
+      const w     = enter * (1 - exit)
+
+      if (rArm) { rArm.rotation.z = lerp(Math.PI / 5, Math.PI / 12, w); rArm.rotation.x = lerp(0, -0.2, w) }
+      if (lArm) { lArm.rotation.z = lerp(-Math.PI / 5, -Math.PI / 12, w); lArm.rotation.x = lerp(0, -0.2, w) }
+
+      if (t >= 0.15 && t <= 0.85) {
+        const clp = Math.max(0, Math.sin((t - 0.15) / 0.7 * Math.PI * 3)) * 0.35 * w
+        if (rForearm) rForearm.rotation.y = -clp
+        if (lForearm) lForearm.rotation.y =  clp
+      } else {
+        if (rForearm) rForearm.rotation.y = 0
+        if (lForearm) lForearm.rotation.y = 0
+      }
+    },
+  },
+
+  jump: {
+    duration: 1.2,
+    fn(t, vrm) {
+      const h     = vrm.humanoid
+      const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
+      const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
+      const rArm  = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const bounce   = Math.abs(Math.sin(t * Math.PI * 1.5)) * Math.exp(-t * 3)
+      if (spine) spine.rotation.x = lerp(0, -0.1, bounce * 2)
+      if (chest) chest.rotation.x = lerp(0.015 * Math.sin(t * 1.8), -0.08, bounce * 2)
+
+      const armLift = Math.max(0, Math.sin(t * Math.PI)) * 0.4
+      if (rArm) rArm.rotation.z =  Math.PI / 5 - armLift
+      if (lArm) lArm.rotation.z = -Math.PI / 5 + armLift
+    },
+  },
+
+  dance: {
+    duration: 3.0,
+    fn(t, vrm) {
+      const h     = vrm.humanoid
+      const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
+      const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
+      const neck  = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
+      const rArm  = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const fade = t < 0.1 ? t / 0.1 : t > 0.9 ? (1 - t) / 0.1 : 1
+      const sway = Math.sin(t * Math.PI * 4) * fade
+
+      if (spine) spine.rotation.z = sway * 0.12
+      if (chest) chest.rotation.z = -sway * 0.08
+      if (neck)  neck.rotation.z  = Math.sin(t * Math.PI * 4 + Math.PI / 4) * 0.08 * fade
+
+      if (rArm) { rArm.rotation.z = Math.PI / 5 - sway * 0.5; rArm.rotation.x = Math.abs(sway) * 0.1 }
+      if (lArm) { lArm.rotation.z = -Math.PI / 5 + sway * 0.5; lArm.rotation.x = Math.abs(sway) * 0.1 }
+    },
+  },
+}
+
 const EXPRESSION_MORPHS: Record<Expression, string[]> = {
   idle: [],
   smile: ["Smile", "smile", "Happy", "happy", "mouthSmile", "Joy"],
@@ -62,6 +246,11 @@ export class AnimationEngine {
   private randomLookTimeout: ReturnType<typeof setTimeout> | null = null
   private _vrmIdleTime = 0
 
+  private _gestureActive = false
+  private _gestureElapsed = 0
+  private _gestureDuration = 0
+  private _gestureUpdateFn: ((t: number) => void) | null = null
+
   init(model: LoadedModel): void {
     this.dispose()
 
@@ -107,7 +296,13 @@ export class AnimationEngine {
   update(delta: number): void {
     this.mixer?.update(delta)
     this._vrmIdleTime += delta
-    this._updateVRMProceduralIdle(this._vrmIdleTime)
+
+    if (this._gestureActive) {
+      this._tickProceduralGesture(delta)
+    } else {
+      this._updateVRMProceduralIdle(this._vrmIdleTime)
+    }
+
     this.vrm?.update(delta)
 
     if (this.headBone) {
@@ -275,19 +470,46 @@ export class AnimationEngine {
   // ── Gestures ──────────────────────────────────────────────────────────────────
 
   playGesture(gesture: Gesture): void {
+    if (this.vrm) {
+      this._playVRMProceduralGesture(gesture)
+      return
+    }
+
+    // GLB fallback: try embedded clip
     const clip = this._findClip(new RegExp(gesture, "i"))
     if (clip && this.mixer) {
       const action = this.mixer.clipAction(clip)
       action.setLoop(THREE.LoopOnce, 1)
       action.clampWhenFinished = true
       this._transitionTo(action)
-
       this.mixer.addEventListener("finished", (e) => {
         if ((e as { action: THREE.AnimationAction }).action === action) {
           this.stop()
           this.mixer?.removeEventListener("finished", () => {})
         }
       })
+    }
+  }
+
+  private _playVRMProceduralGesture(gesture: Gesture): void {
+    const def = VRM_GESTURES[gesture]
+    if (!def || !this.vrm) return
+    const vrm = this.vrm
+    this._gestureActive   = true
+    this._gestureElapsed  = 0
+    this._gestureDuration = def.duration
+    this._gestureUpdateFn = (t) => def.fn(t, vrm)
+  }
+
+  private _tickProceduralGesture(delta: number): void {
+    if (!this._gestureUpdateFn) return
+    this._gestureElapsed += delta
+    const t = Math.min(this._gestureElapsed / this._gestureDuration, 1)
+    this._gestureUpdateFn(t)
+    if (t >= 1) {
+      this._gestureActive   = false
+      this._gestureUpdateFn = null
+      this._gestureElapsed  = 0
     }
   }
 
@@ -397,5 +619,8 @@ export class AnimationEngine {
     this.lookSettled = true
     this.currentAction = null
     this.idleAction = null
+    this._gestureActive   = false
+    this._gestureUpdateFn = null
+    this._gestureElapsed  = 0
   }
 }
