@@ -3,12 +3,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "composite": true,
-    "paths": {
-      "@mymo/avatar": ["../../core/src/index.ts"]
-    }
+    "composite": true
   },
-  "references": [{ "path": "../../core" }],
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
