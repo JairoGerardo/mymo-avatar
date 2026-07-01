@@ -17,6 +17,13 @@ function clamp01(t: number): number {
   return Math.max(0, Math.min(1, t))
 }
 
+// ── Rest pose constants (must match _updateVRMProceduralIdle) ────────────────
+
+const REST_ARM_Z    =  Math.PI / 3.2   // upper arm z — arms close to body
+const REST_FORE_R   = -0.10            // right forearm slight droop
+const REST_FORE_L   =  0.10            // left forearm slight droop
+const REST_HAND_X   = -0.15            // wrists slightly flexed up
+
 // ── VRM Procedural Gesture Definitions ───────────────────────────────────────
 
 type GestureFn = (t: number, vrm: VRM) => void
@@ -38,7 +45,7 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
 
       // Upper arm: ~30° above horizontal — hand ends up near ear/face level
       if (rArm) {
-        rArm.rotation.z = lerp(Math.PI / 5, -Math.PI / 6, poseW)
+        rArm.rotation.z = lerp(REST_ARM_Z, -Math.PI / 6, poseW)
         rArm.rotation.x = 0
         rArm.rotation.y = 0
       }
@@ -49,18 +56,18 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
 
       // Elbow bent ~70°, supinate palm forward — forearm sways gently with the wave
       if (rForearm) {
-        rForearm.rotation.z = lerp(0, -1.35 + wavePhase * 0.12, poseW)
-        rForearm.rotation.y = lerp(0,  Math.PI / 2, poseW)
+        rForearm.rotation.z = lerp(REST_FORE_R, -1.35 + wavePhase * 0.12, poseW)
+        rForearm.rotation.y = lerp(0, Math.PI / 2, poseW)
         rForearm.rotation.x = 0
       }
       // Hand rocks side-to-side in sync with forearm sway
       if (rHand) {
         rHand.rotation.y = wavePhase * 0.4 * poseW
-        rHand.rotation.x = 0
+        rHand.rotation.x = lerp(REST_HAND_X, 0, poseW)
         rHand.rotation.z = 0
       }
 
-      if (lArm) lArm.rotation.z = -Math.PI / 5
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
     },
   },
 
@@ -75,8 +82,8 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const fade = t > 0.85 ? (1 - t) / 0.15 : 1
       if (neck) neck.rotation.x = 0.32 * Math.max(0, Math.sin(t * Math.PI * 2)) * fade
 
-      if (rArm) rArm.rotation.z =  Math.PI / 5
-      if (lArm) lArm.rotation.z = -Math.PI / 5
+      if (rArm) rArm.rotation.z =  REST_ARM_Z
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
     },
   },
 
@@ -91,8 +98,8 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const fade = t > 0.85 ? (1 - t) / 0.15 : 1
       if (neck) neck.rotation.y = 0.35 * Math.sin(t * Math.PI * 2.5) * fade
 
-      if (rArm) rArm.rotation.z =  Math.PI / 5
-      if (lArm) lArm.rotation.z = -Math.PI / 5
+      if (rArm) rArm.rotation.z =  REST_ARM_Z
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
     },
   },
 
@@ -110,11 +117,11 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       else                w = smoothstep(1 - (t - 0.75) / 0.25)
 
       if (rArm) {
-        rArm.rotation.z = lerp(Math.PI / 5, -Math.PI / 6, w)
+        rArm.rotation.z = lerp(REST_ARM_Z, -Math.PI / 6, w)
         rArm.rotation.x = lerp(0, -0.25, w)
       }
-      if (rForearm) rForearm.rotation.x = lerp(0, -0.15, w)
-      if (lArm)     lArm.rotation.z     = -Math.PI / 5
+      if (rForearm) { rForearm.rotation.z = lerp(REST_FORE_R, 0, w); rForearm.rotation.x = lerp(0, -0.15, w) }
+      if (lArm)     lArm.rotation.z = -REST_ARM_Z
     },
   },
 
@@ -139,18 +146,18 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const clapAngle = Math.PI / 2 + 0.05   // ~96° — hands meet at center
       const targetY   = lerp(openAngle, clapAngle, clapOsc)
 
-      if (rArm) { rArm.rotation.z = lerp(Math.PI/5, Math.PI/3, w); rArm.rotation.y = lerp(0,  targetY, w); rArm.rotation.x = 0 }
-      if (lArm) { lArm.rotation.z = lerp(-Math.PI/5, -Math.PI/3, w); lArm.rotation.y = lerp(0, -targetY, w); lArm.rotation.x = 0 }
+      if (rArm) { rArm.rotation.z = lerp(REST_ARM_Z, Math.PI/3, w); rArm.rotation.y = lerp(0,  targetY, w); rArm.rotation.x = 0 }
+      if (lArm) { lArm.rotation.z = lerp(-REST_ARM_Z, -Math.PI/3, w); lArm.rotation.y = lerp(0, -targetY, w); lArm.rotation.x = 0 }
 
       // Forearms: 72° bend (less vertical), palms facing forward
       const rHand = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
       const lHand = h.getNormalizedBoneNode(VRMHumanBoneName.LeftHand)
 
-      if (rForearm) { rForearm.rotation.z = lerp(0, -Math.PI / 2.5, w); rForearm.rotation.y = lerp(0,  Math.PI / 2, w); rForearm.rotation.x = 0 }
-      if (lForearm) { lForearm.rotation.z = lerp(0,  Math.PI / 2.5, w); lForearm.rotation.y = lerp(0, -Math.PI / 2, w); lForearm.rotation.x = 0 }
+      if (rForearm) { rForearm.rotation.z = lerp(REST_FORE_R, -Math.PI / 2.5, w); rForearm.rotation.y = lerp(0,  Math.PI / 2, w); rForearm.rotation.x = 0 }
+      if (lForearm) { lForearm.rotation.z = lerp(REST_FORE_L,  Math.PI / 2.5, w); lForearm.rotation.y = lerp(0, -Math.PI / 2, w); lForearm.rotation.x = 0 }
 
-      if (rHand) { rHand.rotation.z = lerp(0, -Math.PI / 11.25, w); rHand.rotation.y = 0; rHand.rotation.x = 0 }
-      if (lHand) { lHand.rotation.z = lerp(0,  Math.PI / 11.25, w); lHand.rotation.y = 0; lHand.rotation.x = 0 }
+      if (rHand) { rHand.rotation.z = lerp(0, -Math.PI / 11.25, w); rHand.rotation.y = 0; rHand.rotation.x = lerp(REST_HAND_X, 0, w) }
+      if (lHand) { lHand.rotation.z = lerp(0,  Math.PI / 11.25, w); lHand.rotation.y = 0; lHand.rotation.x = lerp(REST_HAND_X, 0, w) }
     },
   },
 
@@ -211,8 +218,8 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       if (lFoot)  { lFoot.rotation.x  =  footW;        lFoot.rotation.z  = 0; lFoot.rotation.y  = 0 }
       if (spine)  spine.rotation.x = spineX
       if (chest)  chest.rotation.x = spineX * 0.4
-      if (rArm)   rArm.rotation.z  =  Math.PI / 5 - armLift
-      if (lArm)   lArm.rotation.z  = -Math.PI / 5 + armLift
+      if (rArm)   rArm.rotation.z  =  REST_ARM_Z - armLift
+      if (lArm)   lArm.rotation.z  = -REST_ARM_Z + armLift
     },
   },
 
@@ -233,8 +240,8 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       if (chest) chest.rotation.z = -sway * 0.08
       if (neck)  neck.rotation.z  = Math.sin(t * Math.PI * 4 + Math.PI / 4) * 0.08 * fade
 
-      if (rArm) { rArm.rotation.z = Math.PI / 5 - sway * 0.5; rArm.rotation.x = Math.abs(sway) * 0.1 }
-      if (lArm) { lArm.rotation.z = -Math.PI / 5 + sway * 0.5; lArm.rotation.x = Math.abs(sway) * 0.1 }
+      if (rArm) { rArm.rotation.z = REST_ARM_Z - sway * 0.5; rArm.rotation.x = Math.abs(sway) * 0.1 }
+      if (lArm) { lArm.rotation.z = -REST_ARM_Z + sway * 0.5; lArm.rotation.x = Math.abs(sway) * 0.1 }
     },
   },
 }
@@ -628,8 +635,8 @@ export class AnimationEngine {
     const h = this.vrm.humanoid
     const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
     const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
-    if (rArm) rArm.rotation.z =  Math.PI / 5
-    if (lArm) lArm.rotation.z = -Math.PI / 5
+    if (rArm) rArm.rotation.z =  Math.PI / 6
+    if (lArm) lArm.rotation.z = -Math.PI / 6
     // Save natural hips Y so gestures can offset from it without breaking idle pose
     const hips = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
     if (hips) this.vrm.scene.userData["hipsRestY"] = hips.position.y
@@ -638,19 +645,73 @@ export class AnimationEngine {
   private _updateVRMProceduralIdle(t: number): void {
     if (!this.vrm) return
     const h = this.vrm.humanoid
+
     // Restore hips to natural rest Y in case a gesture displaced it
     const hips = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
     if (hips) hips.position.y = (this.vrm.scene.userData["hipsRestY"] as number) ?? 0
-    // A-pose arms — must be set every frame before vrm.update() processes them
+
+    // Breathing rhythm drives everything
+    const breathe = Math.sin(t * 1.8)
+    const sway    = Math.sin(t * 0.7)
+
+    const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
+    const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
+    if (spine) spine.rotation.z = sway * 0.008
+    if (chest) chest.rotation.x = breathe * 0.015
+
+    // Arms closer to body (PI/6 ≈ 30° vs old PI/5 = 36°), sway gently with breathing
     const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
     const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
-    if (rArm) rArm.rotation.z =  Math.PI / 5
-    if (lArm) lArm.rotation.z = -Math.PI / 5
-    // Breathing + sway
-    const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
-    if (chest) chest.rotation.x = 0.015 * Math.sin(t * 1.8)
-    const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
-    if (spine) spine.rotation.z = 0.008 * Math.sin(t * 0.7)
+    if (rArm) { rArm.rotation.z = Math.PI / 3.2 + breathe * 0.018; rArm.rotation.y = 0; rArm.rotation.x = 0 }
+    if (lArm) { lArm.rotation.z = -(Math.PI / 3.2 + breathe * 0.018); lArm.rotation.y = 0; lArm.rotation.x = 0 }
+
+    // Forearms: slight natural droop so hands don't hang stiffly
+    const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
+    const lForearm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm)
+    if (rForearm) { rForearm.rotation.z = -0.10; rForearm.rotation.y = 0; rForearm.rotation.x = 0 }
+    if (lForearm) { lForearm.rotation.z =  0.10; lForearm.rotation.y = 0; lForearm.rotation.x = 0 }
+
+    // Hands: slight downward tilt for a relaxed look
+    const rHand = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
+    const lHand = h.getNormalizedBoneNode(VRMHumanBoneName.LeftHand)
+    if (rHand) { rHand.rotation.x = -0.15; rHand.rotation.y = 0; rHand.rotation.z = 0 }
+    if (lHand) { lHand.rotation.x = -0.15; lHand.rotation.y = 0; lHand.rotation.z = 0 }
+
+    // Fingers: relaxed natural curl using Z axis (VRM curl direction)
+    const fingerCurl = 0.28 + breathe * 0.06
+    const rFingers: [VRMHumanBoneName, VRMHumanBoneName, VRMHumanBoneName][] = [
+      [VRMHumanBoneName.RightIndexProximal,  VRMHumanBoneName.RightIndexIntermediate,  VRMHumanBoneName.RightIndexDistal],
+      [VRMHumanBoneName.RightMiddleProximal, VRMHumanBoneName.RightMiddleIntermediate, VRMHumanBoneName.RightMiddleDistal],
+      [VRMHumanBoneName.RightRingProximal,   VRMHumanBoneName.RightRingIntermediate,   VRMHumanBoneName.RightRingDistal],
+      [VRMHumanBoneName.RightLittleProximal, VRMHumanBoneName.RightLittleIntermediate, VRMHumanBoneName.RightLittleDistal],
+    ]
+    for (const [prox, mid, dist] of rFingers) {
+      const p = h.getNormalizedBoneNode(prox)
+      const m = h.getNormalizedBoneNode(mid)
+      const d = h.getNormalizedBoneNode(dist)
+      if (p) { p.rotation.z = fingerCurl; p.rotation.x = 0 }
+      if (m) { m.rotation.z = fingerCurl * 0.8; m.rotation.x = 0 }
+      if (d) { d.rotation.z = fingerCurl * 0.5; d.rotation.x = 0 }
+    }
+    const lFingers: [VRMHumanBoneName, VRMHumanBoneName, VRMHumanBoneName][] = [
+      [VRMHumanBoneName.LeftIndexProximal,  VRMHumanBoneName.LeftIndexIntermediate,  VRMHumanBoneName.LeftIndexDistal],
+      [VRMHumanBoneName.LeftMiddleProximal, VRMHumanBoneName.LeftMiddleIntermediate, VRMHumanBoneName.LeftMiddleDistal],
+      [VRMHumanBoneName.LeftRingProximal,   VRMHumanBoneName.LeftRingIntermediate,   VRMHumanBoneName.LeftRingDistal],
+      [VRMHumanBoneName.LeftLittleProximal, VRMHumanBoneName.LeftLittleIntermediate, VRMHumanBoneName.LeftLittleDistal],
+    ]
+    for (const [prox, mid, dist] of lFingers) {
+      const p = h.getNormalizedBoneNode(prox)
+      const m = h.getNormalizedBoneNode(mid)
+      const d = h.getNormalizedBoneNode(dist)
+      if (p) { p.rotation.z = -fingerCurl; p.rotation.x = 0 }
+      if (m) { m.rotation.z = -fingerCurl * 0.8; m.rotation.x = 0 }
+      if (d) { d.rotation.z = -fingerCurl * 0.5; d.rotation.x = 0 }
+    }
+    // Thumbs
+    const rThumb = h.getNormalizedBoneNode(VRMHumanBoneName.RightThumbProximal)
+    const lThumb = h.getNormalizedBoneNode(VRMHumanBoneName.LeftThumbProximal)
+    if (rThumb) { rThumb.rotation.z = -0.3; rThumb.rotation.x = 0.2 }
+    if (lThumb) { lThumb.rotation.z =  0.3; lThumb.rotation.x = 0.2 }
   }
 
   private _findClip(pattern: RegExp): THREE.AnimationClip | undefined {
