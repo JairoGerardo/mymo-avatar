@@ -60,6 +60,9 @@ importers:
       '@mymo/avatar':
         specifier: workspace:*
         version: link:../../packages/core
+      '@pixiv/three-vrm':
+        specifier: ^3.5.4
+        version: 3.5.4(three@0.165.0)
     devDependencies:
       '@types/three':
         specifier: ^0.165.0

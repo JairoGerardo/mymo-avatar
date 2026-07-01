@@ -60,6 +60,7 @@ export class AnimationEngine {
   private blinkTimer: ReturnType<typeof setInterval> | null = null
   private idleTimer: ReturnType<typeof setInterval> | null = null
   private randomLookTimeout: ReturnType<typeof setTimeout> | null = null
+  private _vrmIdleTime = 0
 
   init(model: LoadedModel): void {
     this.dispose()
@@ -78,6 +79,7 @@ export class AnimationEngine {
         model.scene.updateWorldMatrix(true, true)
         this.headBone.getWorldQuaternion(this.headBoneRestWorldQ)
       }
+      this._initVRMRestPose()
     } else {
       // GLB: traverse for head bone and morph meshes
       model.scene.traverse((obj) => {
@@ -104,6 +106,8 @@ export class AnimationEngine {
 
   update(delta: number): void {
     this.mixer?.update(delta)
+    this._vrmIdleTime += delta
+    this._updateVRMProceduralIdle(this._vrmIdleTime)
     this.vrm?.update(delta)
 
     if (this.headBone) {
@@ -244,11 +248,24 @@ export class AnimationEngine {
 
   // ── Mouth / Lip Sync ──────────────────────────────────────────────────────────
 
+  // Cycle order: aa appears most (open vowel dominates natural speech)
+  private static readonly _VRM_VISEME_CYCLE = ["aa", "aa", "oh", "aa", "ih", "aa", "ee", "ou"] as const
+  private static readonly _VRM_VISEMES      = ["aa", "ih", "ou", "ee", "oh"] as const
+
   setMouthMorph(value: number): void {
     const clamped = Math.max(0, Math.min(1, value))
 
     if (this.vrm?.expressionManager) {
-      this.vrm.expressionManager.setValue("aa", clamped)
+      const em = this.vrm.expressionManager
+      // Reset all mouth visemes
+      for (const v of AnimationEngine._VRM_VISEMES) em.setValue(v, 0)
+
+      if (clamped > 0.01) {
+        // Pick viseme based on syllable clock (~4 Hz = 250ms per step)
+        const phase = Math.floor(performance.now() / 250) % AnimationEngine._VRM_VISEME_CYCLE.length
+        const viseme = AnimationEngine._VRM_VISEME_CYCLE[phase] ?? "aa"
+        em.setValue(viseme, clamped)
+      }
       return
     }
 
@@ -330,6 +347,30 @@ export class AnimationEngine {
         }
       }
     }
+  }
+
+  private _initVRMRestPose(): void {
+    if (!this.vrm) return
+    const h = this.vrm.humanoid
+    const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+    const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+    if (rArm) rArm.rotation.z =  Math.PI / 5
+    if (lArm) lArm.rotation.z = -Math.PI / 5
+  }
+
+  private _updateVRMProceduralIdle(t: number): void {
+    if (!this.vrm) return
+    const h = this.vrm.humanoid
+    // A-pose arms — must be set every frame before vrm.update() processes them
+    const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+    const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+    if (rArm) rArm.rotation.z =  Math.PI / 5
+    if (lArm) lArm.rotation.z = -Math.PI / 5
+    // Breathing + sway
+    const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
+    if (chest) chest.rotation.x = 0.015 * Math.sin(t * 1.8)
+    const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
+    if (spine) spine.rotation.z = 0.008 * Math.sin(t * 0.7)
   }
 
   private _findClip(pattern: RegExp): THREE.AnimationClip | undefined {
