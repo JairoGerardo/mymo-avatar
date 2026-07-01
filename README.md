@@ -24,8 +24,9 @@ import { Avatar } from "@mymo/avatar"
 const avatar = new Avatar({
   model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
   position: "bottom-right",
-  size: 180,
+  size: 200,
   theme: "dark",
+  framing: "bust",
 })
 ```
 
@@ -37,18 +38,57 @@ That's it — the avatar mounts itself to `document.body` as a fixed floating wi
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `model` | `string` | `"maya"` | Model name or GLB URL |
+| `model` | `string` | `"maya"` | Model name or GLB/VRM URL |
 | `position` | `AvatarPosition` | `"bottom-right"` | Corner preset |
-| `size` | `number` | `180` | Size in px |
+| `size` | `number` | `200` | Size in px |
 | `theme` | `"light" \| "dark" \| "transparent"` | `"light"` | Background theme |
+| `framing` | `AvatarFraming` | `"full"` | Camera framing preset |
+| `framingConfig` | `FramingSliceConfig` | `{}` | Per-mode framing fine-tuning |
 | `draggable` | `boolean` | `false` | Allow drag & drop |
+| `shadows` | `boolean` | `false` | Enable shadow rendering |
 | `idle` | `boolean` | `true` | Enable idle animations |
 | `idleInterval` | `number` | `8000` | Idle micro-expression interval (ms) |
 | `blink` | `boolean` | `true` | Enable auto-blink |
 | `blinkInterval` | `number` | `3500` | Blink interval (ms) |
 | `lipSync` | `boolean` | `true` | Enable audio-driven lip sync |
 | `followMouse` | `boolean` | `false` | Auto-track mouse cursor |
+| `autoHide` | `boolean` | `false` | Auto-hide on scroll |
 | `zIndex` | `number` | `99999` | CSS z-index |
+
+### Framing
+
+Control how much of the model is visible in the widget:
+
+```ts
+avatar.frame("full")   // entire body
+avatar.frame("half")   // waist up
+avatar.frame("bust")   // chest up
+avatar.frame("face")   // head only
+```
+
+Fine-tune each framing mode at runtime:
+
+```ts
+avatar.setFramingConfig({
+  bust: { from: 0.70, to: 1.0, lookBias: 0.44 },
+  face: { from: 0.82, to: 1.0, lookBias: 0.34 },
+})
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `from` | `number` | Bottom of visible slice (0–1) |
+| `to` | `number` | Top of visible slice (0–1, usually 1.0) |
+| `lookBias` | `number` | Where the camera aims in the slice (0.5 = center; lower = more headroom) |
+
+Default slices:
+
+| Mode | `from` | `to` | `lookBias` |
+|---|---|---|---|
+| `full` | 0.00 | 1.00 | 0.50 |
+| `half` | 0.48 | 1.00 | 0.50 |
+| `bust` | 0.68 | 1.00 | 0.46 |
+| `face` | 0.80 | 1.00 | 0.36 |
 
 ### Expressions
 
@@ -69,26 +109,31 @@ avatar.idle()         // reset to neutral
 ```ts
 avatar.wave()
 avatar.nod()
+avatar.yes()          // affirmative nods (larger amplitude than nod)
+avatar.no()           // deliberate side-to-side shakes
 avatar.shakeHead()
 avatar.point()
 avatar.clap()
 avatar.jump()
-avatar.dance()
+avatar.dance()        // hip sway with counter-rotating spine
 ```
+
+Gestures support **queuing**: if a gesture is triggered while another is active, the current one accelerates to its exit phase and the new one starts immediately after. Only one gesture can be pending at a time.
 
 ### States (UI feedback)
 
-States combine expression + animation + a pulsing ring color:
+States combine an expression + animation clip + a pulsing ring color:
 
 ```ts
 avatar.loading()      // thinking + blue ring
-avatar.success()      // happy + green ring
-avatar.error()        // sad + red ring
+avatar.success()      // happy + Yes animation + green ring
+avatar.error()        // sad + No animation + red ring
 avatar.warning()      // surprised + orange ring
 avatar.typing()       // thinking, no ring
 avatar.listening()    // smile + blue ring
 avatar.processing()   // thinking + blue ring
-avatar.complete()     // happy + green ring
+avatar.complete()     // happy + ThumbsUp animation + green ring
+avatar.setState("listening")  // generic setter
 avatar.clearState()   // reset everything
 ```
 
@@ -108,6 +153,8 @@ avatar.setViseme("aa")      // phoneme-level lip sync
 avatar.setMouth(0.6)        // 0 = closed, 1 = fully open
 avatar.setVolume(0.8)       // amplitude-driven mouth
 ```
+
+Supported visemes: `"sil"` `"PP"` `"FF"` `"TH"` `"DD"` `"kk"` `"CH"` `"SS"` `"nn"` `"RR"` `"aa"` `"E"` `"ih"` `"oh"` `"ou"`
 
 ### Look
 
@@ -132,7 +179,7 @@ avatar.scale(1.2)             // relative scale
 ### Animations
 
 ```ts
-avatar.play("Wave")    // play clip by name (from GLB)
+avatar.play("Wave")    // play clip by name (from GLB/VRM)
 avatar.stop()
 ```
 
@@ -155,16 +202,38 @@ avatar.off("click", handler)  // remove listener
 ```ts
 import { createElevenLabsPlugin } from "@mymo/plugin-elevenlabs"
 
-const { plugin, controller } = createElevenLabsPlugin({ apiKey: "your-key" })
+const { plugin, controller } = createElevenLabsPlugin({
+  apiKey: "your-key",
+  voiceId: "21m00Tcm4TlvDq8ikWAM",   // optional, default: Rachel
+  modelId: "eleven_multilingual_v2",  // optional
+})
 avatar.use(plugin)
 
 await controller.speak("Hello! I'm your virtual assistant.")
 ```
 
+Build your own plugin:
+
+```ts
+import type { AvatarPlugin } from "@mymo/avatar"
+
+const myPlugin: AvatarPlugin = {
+  name: "my-plugin",
+  install(avatar) {
+    avatar.on("click", () => avatar.wave())
+  },
+}
+
+avatar.use(myPlugin)
+```
+
 ### Load different models
 
 ```ts
+// By name (resolved from CDN) or direct URL — GLB and VRM supported
+await avatar.load("robot")
 await avatar.load("https://example.com/my-avatar.glb")
+await avatar.load("https://example.com/my-avatar.vrm")
 ```
 
 ### Lifecycle
@@ -172,6 +241,8 @@ await avatar.load("https://example.com/my-avatar.glb")
 ```ts
 avatar.destroy()  // removes from DOM, stops all loops
 ```
+
+> All methods except `destroy()` are chainable.
 
 ## React
 
@@ -194,6 +265,7 @@ export function App() {
         model="https://..."
         position="bottom-right"
         theme="dark"
+        framing="bust"
         idle blink draggable
       />
       <button onClick={() => ref.current?.wave()}>Wave</button>
@@ -211,6 +283,7 @@ function MyComponent() {
   const avatarRef = useAvatar({
     model: "https://...",
     position: "bottom-right",
+    framing: "bust",
   })
 
   return <button onClick={() => avatarRef.current?.smile()}>Smile</button>
@@ -225,12 +298,31 @@ npm install @mymo/vue
 
 ```vue
 <script setup lang="ts">
-import { ref } from "vue"
-import { AvatarWidget } from "@mymo/vue"
+import { useAvatar } from "@mymo/vue"
 import type { Avatar } from "@mymo/avatar"
 
+const avatar = useAvatar({
+  model: "https://...",
+  position: "bottom-right",
+  framing: "bust",
+})
+// avatar is a ShallowRef<Avatar | null>
+</script>
+
+<template>
+  <button @click="avatar.value?.wave()">Wave</button>
+</template>
+```
+
+Or with the component:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue"
+import { AvatarWidget } from "@mymo/vue"
+
 const widgetRef = ref()
-const avatar = () => widgetRef.value?.avatar.value as Avatar
+const avatar = () => widgetRef.value?.avatar.value
 </script>
 
 <template>
@@ -239,21 +331,13 @@ const avatar = () => widgetRef.value?.avatar.value as Avatar
     model="https://..."
     position="bottom-right"
     theme="dark"
+    framing="bust"
     :idle="true"
     :blink="true"
     :draggable="true"
   />
   <button @click="avatar()?.wave()">Wave</button>
 </template>
-```
-
-Or use the composable:
-
-```ts
-import { useAvatar } from "@mymo/vue"
-
-const avatar = useAvatar({ model: "https://...", position: "bottom-right" })
-// avatar.value is the Avatar instance after mount
 ```
 
 ## CDN (UMD)
@@ -263,21 +347,57 @@ const avatar = useAvatar({ model: "https://...", position: "bottom-right" })
 <script src="https://unpkg.com/@mymo/avatar/dist/mymo-avatar.umd.js"></script>
 <script>
   const { Avatar } = MymoAvatar
-  const avatar = new Avatar({ model: "https://...", theme: "dark" })
+  const avatar = new Avatar({ model: "https://...", theme: "dark", framing: "bust" })
 </script>
 ```
 
-## Model requirements
+## Model formats
 
-Any GLB file works. For full feature support the model should include:
+### VRM — recommended
+
+VRM is the first-class format. All features are guaranteed: expressions, gestures, lip sync, blink, and head look work out of the box on any valid VRM file because the spec enforces standardized bone names and blendshapes. Gestures are procedurally animated — no embedded animation clips required.
+
+```ts
+await avatar.load("https://example.com/my-avatar.vrm")
+```
+
+Good sources: [VRoid Studio](https://vroid.com/en/studio), [VRoid Hub](https://hub.vroid.com), [Booth](https://booth.pm).
+
+### GLB — best-effort
+
+GLB files are supported but features depend on what the model includes. A `console.warn` is emitted at load time as a reminder. For each feature to work, the model must ship the corresponding data:
 
 | Feature | Requirement |
 |---|---|
 | Expressions | Morph targets named `Smile`, `Sad`, `Happy`, `Angry`, etc. |
 | Lip sync | Morph targets: `mouthOpen`, `jawOpen`, or `viseme_*` |
-| Blink | Morph targets: `Blink`, `eyesClosed` |
+| Blink | Morph targets: `Blink` or `eyesClosed` |
 | Gestures | Animation clips: `Wave`, `Nod`, `Dance`, etc. |
 | Head look | Bone named `Head`, `head`, or `mixamorigHead` |
+
+If these are absent the SDK degrades gracefully — missing features are skipped silently after the initial load warning.
+
+## TypeScript
+
+All types are exported from `@mymo/avatar`:
+
+```ts
+import type {
+  AvatarOptions,
+  AvatarPosition,    // "bottom-right" | "bottom-left" | "top-right" | "top-left"
+  AvatarTheme,       // "light" | "dark" | "transparent"
+  AvatarFraming,     // "full" | "half" | "bust" | "face"
+  AvatarEvent,       // "click" | "loaded" | "modelLoaded" | "animationStart" | "animationEnd" | "speechStart" | "speechEnd"
+  AvatarState,       // "loading" | "success" | "error" | "warning" | "typing" | "listening" | "processing" | "complete"
+  AvatarPlugin,
+  AvatarApi,
+  Expression,        // "smile" | "sad" | "happy" | "angry" | "surprised" | "thinking" | "confused" | "sleep" | "idle"
+  Gesture,           // "wave" | "nod" | "yes" | "no" | "shakeHead" | "point" | "clap" | "jump" | "dance"
+  Viseme,
+  FramingSliceConfig,
+  FramingModeConfig,
+} from "@mymo/avatar"
+```
 
 ## Browser support
 

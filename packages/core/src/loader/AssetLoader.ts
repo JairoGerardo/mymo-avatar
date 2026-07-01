@@ -35,6 +35,9 @@ export class AssetLoader {
   }
 
   private async _loadGLB(url: string): Promise<LoadedModel> {
+    console.warn(
+      "[mymo-avatar] GLB support is best-effort. For guaranteed expressions, gestures, lip sync, and blink, use a VRM model.",
+    )
     const loader = new GLTFLoader()
     const gltf = await this._load(loader, url)
     this._prepareMeshes(gltf.scene)
