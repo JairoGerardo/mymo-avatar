@@ -15,6 +15,7 @@ import type {
   Expression,
   Gesture,
   AvatarState,
+  FramingSliceConfig,
 } from "./types/index.js"
 import type { Viseme } from "./audio/LipSync.js"
 
@@ -153,7 +154,7 @@ export class Avatar {
     return this
   }
 
-  setFramingConfig(config: import("./types/index.js").FramingSliceConfig): this {
+  setFramingConfig(config: FramingSliceConfig): this {
     this.renderer.setFramingConfig(config)
     return this
   }
