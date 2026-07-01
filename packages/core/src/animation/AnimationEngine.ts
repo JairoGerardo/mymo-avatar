@@ -119,7 +119,7 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
   },
 
   clap: {
-    duration: 2.0,
+    duration: 2.2,
     fn(t, vrm) {
       const h        = vrm.humanoid
       const rArm     = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
@@ -127,21 +127,30 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
       const lForearm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm)
 
-      const enter = smoothstep(clamp01(t / 0.15))
-      const exit  = t > 0.85 ? smoothstep((t - 0.85) / 0.15) : 0
+      const enter = smoothstep(clamp01(t / 0.20))
+      const exit  = t > 0.80 ? smoothstep((t - 0.80) / 0.20) : 0
       const w     = enter * (1 - exit)
 
-      if (rArm) { rArm.rotation.z = lerp(Math.PI / 5, Math.PI / 12, w); rArm.rotation.x = lerp(0, -0.2, w) }
-      if (lArm) { lArm.rotation.z = lerp(-Math.PI / 5, -Math.PI / 12, w); lArm.rotation.x = lerp(0, -0.2, w) }
+      // 3 clap impacts: arms rest at openAngle, surge to clapAngle on each beat
+      const clapOsc = t >= 0.20 && t <= 0.80
+        ? Math.max(0, Math.sin((t - 0.20) / 0.60 * Math.PI * 10))
+        : 0
+      const openAngle = Math.PI / 2 - 0.08   // ~68° — hands slightly apart between beats
+      const clapAngle = Math.PI / 2 + 0.05   // ~96° — hands meet at center
+      const targetY   = lerp(openAngle, clapAngle, clapOsc)
 
-      if (t >= 0.15 && t <= 0.85) {
-        const clp = Math.max(0, Math.sin((t - 0.15) / 0.7 * Math.PI * 3)) * 0.35 * w
-        if (rForearm) rForearm.rotation.y = -clp
-        if (lForearm) lForearm.rotation.y =  clp
-      } else {
-        if (rForearm) rForearm.rotation.y = 0
-        if (lForearm) lForearm.rotation.y = 0
-      }
+      if (rArm) { rArm.rotation.z = lerp(Math.PI/5, Math.PI/3, w); rArm.rotation.y = lerp(0,  targetY, w); rArm.rotation.x = 0 }
+      if (lArm) { lArm.rotation.z = lerp(-Math.PI/5, -Math.PI/3, w); lArm.rotation.y = lerp(0, -targetY, w); lArm.rotation.x = 0 }
+
+      // Forearms: 72° bend (less vertical), palms facing forward
+      const rHand = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
+      const lHand = h.getNormalizedBoneNode(VRMHumanBoneName.LeftHand)
+
+      if (rForearm) { rForearm.rotation.z = lerp(0, -Math.PI / 2.5, w); rForearm.rotation.y = lerp(0,  Math.PI / 2, w); rForearm.rotation.x = 0 }
+      if (lForearm) { lForearm.rotation.z = lerp(0,  Math.PI / 2.5, w); lForearm.rotation.y = lerp(0, -Math.PI / 2, w); lForearm.rotation.x = 0 }
+
+      if (rHand) { rHand.rotation.z = lerp(0, -Math.PI / 11.25, w); rHand.rotation.y = 0; rHand.rotation.x = 0 }
+      if (lHand) { lHand.rotation.z = lerp(0,  Math.PI / 11.25, w); lHand.rotation.y = 0; lHand.rotation.x = 0 }
     },
   },
 
