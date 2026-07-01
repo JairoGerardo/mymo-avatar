@@ -272,6 +272,7 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
     duration: 3.0,
     fn(t, vrm) {
       const h     = vrm.humanoid
+      const hips  = h.getNormalizedBoneNode(VRMHumanBoneName.Hips)
       const spine = h.getNormalizedBoneNode(VRMHumanBoneName.Spine)
       const chest = h.getNormalizedBoneNode(VRMHumanBoneName.Chest)
       const neck  = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
@@ -280,10 +281,31 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
 
       const fade = t < 0.1 ? t / 0.1 : t > 0.9 ? (1 - t) / 0.1 : 1
       const sway = Math.sin(t * Math.PI * 4) * fade
+      // Hips move at half frequency, opposite phase to spine — classic hip sway
+      const hipSway = Math.sin(t * Math.PI * 4 + Math.PI) * fade
 
-      if (spine) spine.rotation.z = sway * 0.12
-      if (chest) chest.rotation.z = -sway * 0.08
-      if (neck)  neck.rotation.z  = Math.sin(t * Math.PI * 4 + Math.PI / 4) * 0.08 * fade
+      const hipsRestY = (vrm.scene.userData["hipsRestY"] as number) ?? 0
+      const rThigh = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperLeg)
+      const lThigh = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperLeg)
+      const rFoot  = h.getNormalizedBoneNode(VRMHumanBoneName.RightFoot)
+      const lFoot  = h.getNormalizedBoneNode(VRMHumanBoneName.LeftFoot)
+
+      if (hips) {
+        hips.position.y = hipsRestY
+        hips.rotation.z = hipSway * 0.18
+        hips.rotation.y = hipSway * 0.06
+      }
+
+      // Counter-rotate thighs so legs stay vertical when hips tilt
+      if (rThigh) { rThigh.rotation.z = -hipSway * 0.18; rThigh.rotation.x = 0; rThigh.rotation.y = 0 }
+      if (lThigh) { lThigh.rotation.z = -hipSway * 0.18; lThigh.rotation.x = 0; lThigh.rotation.y = 0 }
+      // Feet stay flat
+      if (rFoot)  { rFoot.rotation.x = 0; rFoot.rotation.z = 0; rFoot.rotation.y = 0 }
+      if (lFoot)  { lFoot.rotation.x = 0; lFoot.rotation.z = 0; lFoot.rotation.y = 0 }
+
+      if (spine) spine.rotation.z = sway * 0.10
+      if (chest) chest.rotation.z = -sway * 0.07
+      if (neck)  neck.rotation.z  = Math.sin(t * Math.PI * 4 + Math.PI / 4) * 0.07 * fade
 
       if (rArm) { rArm.rotation.z = REST_ARM_Z - sway * 0.5; rArm.rotation.x = Math.abs(sway) * 0.1 }
       if (lArm) { lArm.rotation.z = -REST_ARM_Z + sway * 0.5; lArm.rotation.x = Math.abs(sway) * 0.1 }
