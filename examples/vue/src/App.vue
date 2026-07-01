@@ -113,10 +113,15 @@ const cfg = computed(() => framingSlices[activeFraming.value])
       <div class="group">
         <span class="group-label">Gestures</span>
         <div class="btn-row">
-          <button @click="act('wave',  () => av().wave())">wave</button>
-          <button @click="act('nod',   () => av().nod())">nod</button>
-          <button @click="act('dance', () => av().dance())">dance</button>
-          <button @click="act('jump',  () => av().jump())">jump</button>
+          <button @click="act('wave',      () => av().wave())">wave</button>
+          <button @click="act('nod',       () => av().nod())">nod</button>
+          <button @click="act('yes',       () => av().yes())">yes</button>
+          <button @click="act('no',        () => av().no())">no</button>
+          <button @click="act('shakeHead', () => av().shakeHead())">shakeHead</button>
+          <button @click="act('point',     () => av().point())">point</button>
+          <button @click="act('clap',      () => av().clap())">clap</button>
+          <button @click="act('jump',      () => av().jump())">jump</button>
+          <button @click="act('dance',     () => av().dance())">dance</button>
         </div>
       </div>
 

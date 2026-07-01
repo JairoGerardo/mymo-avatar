@@ -174,10 +174,15 @@ export function App() {
         </>)}
 
         {group("Gestures", <>
-          {btn("wave",  () => av().wave())}
-          {btn("nod",   () => av().nod())}
-          {btn("dance", () => av().dance())}
-          {btn("jump",  () => av().jump())}
+          {btn("wave",      () => av().wave())}
+          {btn("nod",       () => av().nod())}
+          {btn("yes",       () => av().yes())}
+          {btn("no",        () => av().no())}
+          {btn("shakeHead", () => av().shakeHead())}
+          {btn("point",     () => av().point())}
+          {btn("clap",      () => av().clap())}
+          {btn("jump",      () => av().jump())}
+          {btn("dance",     () => av().dance())}
         </>)}
 
         {group("States", <>
