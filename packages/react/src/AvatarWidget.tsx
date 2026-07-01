@@ -11,7 +11,7 @@ export const AvatarWidget = forwardRef<Avatar | null, AvatarWidgetProps>(
     const { className: _c, ...options } = props
     const avatarRef = useAvatar(options)
 
-    useImperativeHandle(ref, () => avatarRef.current)
+    useImperativeHandle(ref, () => avatarRef.current!)
 
     // Avatar mounts itself directly to document.body — no DOM node needed here
     return null
