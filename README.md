@@ -247,7 +247,7 @@ avatar.destroy()  // removes from DOM, stops all loops
 ## React
 
 ```bash
-npm install @mymo/react
+npm install @mymo/react @mymo/avatar three
 ```
 
 ```tsx
@@ -293,7 +293,7 @@ function MyComponent() {
 ## Vue
 
 ```bash
-npm install @mymo/vue
+npm install @mymo/vue @mymo/avatar three
 ```
 
 ```vue
