@@ -38,6 +38,19 @@ export type AvatarEvent =
 
 export type AvatarEventCallback = (event: AvatarEvent, data?: unknown) => void
 
+/** Per-mode framing tuning. from/to: vertical slice of the model (0=feet, 1=top of head).
+ *  lookBias: where in the slice the camera aims (0.5=center, lower=more headroom above). */
+export interface FramingModeConfig {
+  /** Bottom of the visible slice as a fraction of model height (0–1) */
+  from?: number
+  /** Top of the visible slice as a fraction of model height (0–1, default 1.0) */
+  to?: number
+  /** Where in the slice the camera aims: 0.5 = center, 0.35 = lower → more room above */
+  lookBias?: number
+}
+
+export type FramingSliceConfig = Partial<Record<AvatarFraming, FramingModeConfig>>
+
 export interface AvatarOptions {
   model?: string
   position?: AvatarPosition
@@ -54,6 +67,8 @@ export interface AvatarOptions {
   followMouse?: boolean
   autoHide?: boolean
   zIndex?: number
+  /** Override per-mode framing slices to fine-tune for your specific model */
+  framingConfig?: FramingSliceConfig
 }
 
 export interface AvatarApi {
@@ -73,6 +88,7 @@ export interface AvatarApi {
   play(name: string): this
   stop(): this
   load(model: string): Promise<this>
+  setFramingConfig(config: FramingSliceConfig): this
 }
 
 export interface AvatarPlugin {

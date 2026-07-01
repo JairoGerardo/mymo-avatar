@@ -21,8 +21,8 @@ function setLog(msg: string, active = false): void {
 const avatar = new Avatar({
   // model: ROBOT_GLB,
   model: "/girl.vrm",
-  framing: "bust",
-  // model: "/stylized_female_head_demo_only_head.glb",
+  // model: "/woody_toy_story_v2_kh3.glb",
+  framing: "full",
   position: "bottom-right",
   size: 400,
   theme: "dark",
@@ -32,7 +32,14 @@ const avatar = new Avatar({
   blinkInterval: 3000,
   lipSync: true,
   draggable: true,
-  zIndex: 9999
+  zIndex: 9999,
+  // Per-model framing tuning — adjust these until the framing looks right for your GLB/VRM
+  framingConfig: {
+    full: { from: 0.00, lookBias: 0.50 },
+    half: { from: 0.50, lookBias: 0.55 },
+    bust: { from: 0.60, lookBias: 0.62 },
+    face: { from: 0.72, lookBias: 0.65 },
+  },
 })
 
 avatar
@@ -133,13 +140,74 @@ const ACTIONS: Record<string, ActionFn> = {
   "frame-face":  () => avatar.frame("face"),
 }
 
+// ── Framing buttons + config sliders ─────────────────────────────────────────
+
+let currentFraming = "full"
+
+// Per-mode config (mirrors framingConfig passed to the Avatar constructor)
+const framingSlices: Record<string, { from: number; lookBias: number }> = {
+  full: { from: 0.00, lookBias: 0.50 },
+  half: { from: 0.50, lookBias: 0.55 },
+  bust: { from: 0.60, lookBias: 0.62 },
+  face: { from: 0.72, lookBias: 0.65 },
+}
+
+const fcModeLabel  = document.getElementById("fc-mode-label")!
+const fcFromSlider = document.getElementById("fc-from") as HTMLInputElement
+const fcBiasSlider = document.getElementById("fc-bias") as HTMLInputElement
+const fcFromVal    = document.getElementById("fc-from-val")!
+const fcBiasVal    = document.getElementById("fc-bias-val")!
+
+function syncSliders(mode: string): void {
+  const cfg = framingSlices[mode]!
+  fcFromSlider.value = String(cfg.from)
+  fcBiasSlider.value = String(cfg.lookBias)
+  fcFromVal.textContent = cfg.from.toFixed(2)
+  fcBiasVal.textContent = cfg.lookBias.toFixed(2)
+  fcModeLabel.textContent = mode
+}
+
+function applyFramingConfig(mode: string): void {
+  avatar.setFramingConfig({ [mode]: framingSlices[mode] })
+}
+
+fcFromSlider.addEventListener("input", () => {
+  const v = parseFloat(fcFromSlider.value)
+  fcFromVal.textContent = v.toFixed(2)
+  framingSlices[currentFraming]!.from = v
+  applyFramingConfig(currentFraming)
+  setLog(`framingConfig.${currentFraming}.from = ${v.toFixed(2)}`, true)
+})
+
+fcBiasSlider.addEventListener("input", () => {
+  const v = parseFloat(fcBiasSlider.value)
+  fcBiasVal.textContent = v.toFixed(2)
+  framingSlices[currentFraming]!.lookBias = v
+  applyFramingConfig(currentFraming)
+  setLog(`framingConfig.${currentFraming}.lookBias = ${v.toFixed(2)}`, true)
+})
+
+syncSliders(currentFraming)
+
 document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const action = btn.dataset["action"]!
+
+    // Track active framing button
+    if (btn.dataset["framing"]) {
+      document.querySelectorAll<HTMLButtonElement>("button[data-framing]").forEach(b => b.classList.remove("active"))
+      btn.classList.add("active")
+      currentFraming = btn.dataset["framing"]
+      syncSliders(currentFraming)
+    }
+
     setLog(`avatar.${action}()`, true)
     ACTIONS[action]?.()
   })
 })
+
+// Mark initial active framing button
+document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
 
 // ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
 async function inspectModel(url: string): Promise<void> {
@@ -190,4 +258,4 @@ async function inspectModel(url: string): Promise<void> {
     console.groupEnd()
   }
 }
-inspectModel("/girl.vrm").catch(console.error)
+inspectModel("/woody_toy_story_v2_kh3.glb").catch(console.error)

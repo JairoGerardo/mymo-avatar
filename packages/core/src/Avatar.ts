@@ -41,6 +41,7 @@ const DEFAULTS: Required<AvatarOptions> = {
   followMouse: false,
   autoHide: false,
   zIndex: 99999,
+  framingConfig: {},
 }
 
 export class Avatar {
@@ -149,6 +150,11 @@ export class Avatar {
 
   frame(preset: AvatarFraming): this {
     this.renderer.setFraming(preset)
+    return this
+  }
+
+  setFramingConfig(config: import("./types/index.js").FramingSliceConfig): this {
+    this.renderer.setFramingConfig(config)
     return this
   }
 

@@ -1,15 +1,25 @@
 import * as THREE from "three"
-import type { AvatarOptions, AvatarPosition, AvatarFraming } from "../types/index.js"
+import type { AvatarOptions, AvatarPosition, AvatarFraming, FramingSliceConfig } from "../types/index.js"
 
 type TickCallback = (delta: number) => void
 
 type FramingConfig = { camY: number; camZ: number; lookY: number }
 
-const FRAMING: Record<AvatarFraming, FramingConfig> = {
+// [bottomFraction, topFraction, lookBias]
+// lookBias: where in the slice the camera looks (0.5 = center, lower = look below → frame top rises)
+const FRAMING_SLICES: Record<AvatarFraming, [number, number, number]> = {
+  full: [0.00, 1.00, 0.50],
+  half: [0.48, 1.00, 0.50],
+  bust: [0.68, 1.00, 0.46],
+  face: [0.80, 1.00, 0.36], // look well below center → full head/ears visible at top
+}
+
+// Fallback when no model is loaded yet
+const FRAMING_FALLBACK: Record<AvatarFraming, FramingConfig> = {
   full:  { camY: 0.0,  camZ: 2.8, lookY: 0.0 },
-  half:  { camY: 0.5,  camZ: 2.0, lookY: 0.4  },
+  half:  { camY: 0.5,  camZ: 2.0, lookY: 0.4 },
   bust:  { camY: 0.80, camZ: 1.0, lookY: 0.55 },
-  face:  { camY: 0.80,  camZ: 0.7, lookY: 0.7 },
+  face:  { camY: 0.80, camZ: 0.7, lookY: 0.7 },
 }
 
 const POSITION_CSS: Record<AvatarPosition, Partial<Record<keyof CSSStyleDeclaration, string>>> = {
@@ -29,6 +39,9 @@ export class Renderer {
   private rafId = 0
   private tickCallbacks: TickCallback[] = []
   private currentModel: THREE.Object3D | null = null
+  private currentFraming: AvatarFraming = "full"
+  private modelFraming: Record<AvatarFraming, FramingConfig> | null = null
+  private userSliceConfig: FramingSliceConfig = {}
 
   constructor() {
     this.scene = new THREE.Scene()
@@ -46,6 +59,8 @@ export class Renderer {
 
     this._setupLights()
     this._createContainer(options)
+    this.currentFraming = options.framing
+    if (options.framingConfig) this.userSliceConfig = options.framingConfig
     this._applyFraming(options.framing)
     this._startLoop()
   }
@@ -166,6 +181,29 @@ export class Renderer {
     this.currentModel = model
     this._autoFit(model)
     this.scene.add(model)
+    this.modelFraming = this._computeFraming(model)
+    this._applyFraming(this.currentFraming)
+  }
+
+  private _computeFraming(model: THREE.Object3D): Record<AvatarFraming, FramingConfig> {
+    const box = new THREE.Box3().setFromObject(model)
+    const totalHeight = box.max.y - box.min.y
+    const tanHalfFov = Math.tan((this.camera.fov * Math.PI) / 180 / 2)
+
+    const result = {} as Record<AvatarFraming, FramingConfig>
+    for (const [mode, defaults] of Object.entries(FRAMING_SLICES) as [AvatarFraming, [number, number, number]][]) {
+      const override = this.userSliceConfig[mode] ?? {}
+      const from     = override.from     ?? defaults[0]
+      const to       = override.to       ?? defaults[1]
+      const bias     = override.lookBias ?? defaults[2]
+      const sliceBottom = box.min.y + totalHeight * from
+      const sliceTop    = box.min.y + totalHeight * to
+      const sliceHeight = sliceTop - sliceBottom
+      const lookY = sliceBottom + sliceHeight * bias
+      const camZ  = (sliceHeight / 2 / tanHalfFov) * 1.15
+      result[mode] = { camY: lookY, camZ, lookY }
+    }
+    return result
   }
 
   private _autoFit(model: THREE.Object3D): void {
@@ -180,7 +218,7 @@ export class Renderer {
   }
 
   private _applyFraming(framing: AvatarFraming): void {
-    const { camY, camZ, lookY } = FRAMING[framing]
+    const { camY, camZ, lookY } = (this.modelFraming ?? FRAMING_FALLBACK)[framing]
     this.camera.position.set(0, camY, camZ)
     this.camera.lookAt(0, lookY, 0)
   }
@@ -196,7 +234,16 @@ export class Renderer {
   }
 
   setFraming(framing: AvatarFraming): void {
+    this.currentFraming = framing
     this._applyFraming(framing)
+  }
+
+  setFramingConfig(config: FramingSliceConfig): void {
+    this.userSliceConfig = { ...this.userSliceConfig, ...config }
+    if (this.currentModel) {
+      this.modelFraming = this._computeFraming(this.currentModel)
+      this._applyFraming(this.currentFraming)
+    }
   }
 
   setPosition(preset: AvatarPosition): void {

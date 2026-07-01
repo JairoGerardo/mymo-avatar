@@ -85,6 +85,25 @@
         transform: scale(0.96);
       }
 
+      button.active {
+        background: rgba(167, 139, 250, 0.3);
+        border-color: rgba(167, 139, 250, 0.9);
+        color: #fff;
+      }
+
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: #aaa;
+        width: 100%;
+      }
+
+      .slider-row label { min-width: 4.5rem; text-align: right; color: #888; }
+      .slider-row input[type="range"] { flex: 1; accent-color: #a78bfa; cursor: pointer; }
+      .slider-row .val { min-width: 2.5rem; font-family: monospace; color: #c4b5fd; }
+
       #log {
         font-size: 0.75rem;
         color: #555;
@@ -173,10 +192,24 @@
       <div class="group">
         <span class="group-label">Framing</span>
         <div class="btn-row">
-          <button data-action="frame-full">full</button>
-          <button data-action="frame-half">half</button>
-          <button data-action="frame-bust">bust</button>
-          <button data-action="frame-face">face</button>
+          <button data-action="frame-full" data-framing="full">full</button>
+          <button data-action="frame-half" data-framing="half">half</button>
+          <button data-action="frame-bust" data-framing="bust">bust</button>
+          <button data-action="frame-face" data-framing="face">face</button>
+        </div>
+      </div>
+
+      <div class="group" style="width:100%; max-width:340px;">
+        <span class="group-label">Framing Config — <span id="fc-mode-label">face</span></span>
+        <div class="slider-row">
+          <label>from</label>
+          <input type="range" id="fc-from" min="0" max="1" step="0.01" value="0.80">
+          <span class="val" id="fc-from-val">0.80</span>
+        </div>
+        <div class="slider-row">
+          <label>lookBias</label>
+          <input type="range" id="fc-bias" min="0" max="1" step="0.01" value="0.36">
+          <span class="val" id="fc-bias-val">0.36</span>
         </div>
       </div>
     </div>
