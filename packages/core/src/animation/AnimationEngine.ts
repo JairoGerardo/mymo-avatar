@@ -376,6 +376,7 @@ export class AnimationEngine {
   private _gestureElapsed = 0
   private _gestureDuration = 0
   private _gestureUpdateFn: ((t: number) => void) | null = null
+  private _pendingGesture: Gesture | null = null
 
   init(model: LoadedModel): void {
     this.dispose()
@@ -618,6 +619,18 @@ export class AnimationEngine {
   }
 
   private _playVRMProceduralGesture(gesture: Gesture): void {
+    if (!this.vrm) return
+    if (this._gestureActive) {
+      // Accelerate current gesture to its exit phase (~82%), then queue the new one
+      const exitPhase = this._gestureDuration * 0.82
+      if (this._gestureElapsed < exitPhase) this._gestureElapsed = exitPhase
+      this._pendingGesture = gesture
+      return
+    }
+    this._startGesture(gesture)
+  }
+
+  private _startGesture(gesture: Gesture): void {
     const def = VRM_GESTURES[gesture]
     if (!def || !this.vrm) return
     const vrm = this.vrm
@@ -625,6 +638,7 @@ export class AnimationEngine {
     this._gestureElapsed  = 0
     this._gestureDuration = def.duration
     this._gestureUpdateFn = (t) => def.fn(t, vrm)
+    this._pendingGesture  = null
   }
 
   private _tickProceduralGesture(delta: number): void {
@@ -636,6 +650,7 @@ export class AnimationEngine {
       this._gestureActive   = false
       this._gestureUpdateFn = null
       this._gestureElapsed  = 0
+      if (this._pendingGesture) this._startGesture(this._pendingGesture)
     }
   }
 
@@ -808,5 +823,6 @@ export class AnimationEngine {
     this._gestureActive   = false
     this._gestureUpdateFn = null
     this._gestureElapsed  = 0
+    this._pendingGesture  = null
   }
 }

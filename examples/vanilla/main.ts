@@ -24,7 +24,7 @@ const avatar = new Avatar({
   // model: "/woody_toy_story_v2_kh3.glb",
   framing: "full",
   position: "bottom-right",
-  size: 600,
+  size: 200,
   theme: "dark",
   idle: true,
   idleInterval: 6000,
