@@ -106,6 +106,8 @@ const ACTIONS: Record<string, ActionFn> = {
   // Gestures
   wave:      () => avatar.wave(),
   nod:       () => avatar.nod(),
+  yes:       () => avatar.yes(),
+  no:        () => avatar.no(),
   shakeHead: () => avatar.shakeHead(),
   point:     () => avatar.point(),
   clap:      () => avatar.clap(),

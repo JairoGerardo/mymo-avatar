@@ -223,6 +223,51 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
     },
   },
 
+  no: {
+    duration: 1.8,
+    fn(t, vrm) {
+      const h    = vrm.humanoid
+      const neck = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
+      const head = h.getNormalizedBoneNode(VRMHumanBoneName.Head)
+      const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const fade = t < 0.12 ? smoothstep(t / 0.12) : t > 0.85 ? smoothstep((1 - t) / 0.15) : 1
+
+      // 3 deliberate side-to-side shakes
+      const shake = Math.sin(t * Math.PI * 6) * fade
+
+      if (neck) neck.rotation.y = shake * 0.38
+      if (head) head.rotation.y = shake * 0.12
+
+      if (rArm) rArm.rotation.z =  REST_ARM_Z
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
+    },
+  },
+
+  yes: {
+    duration: 2.0,
+    fn(t, vrm) {
+      const h    = vrm.humanoid
+      const neck = h.getNormalizedBoneNode(VRMHumanBoneName.Neck)
+      const head = h.getNormalizedBoneNode(VRMHumanBoneName.Head)
+      const rArm = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const lArm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      // fade in / fade out
+      const fade = t < 0.12 ? smoothstep(t / 0.12) : t > 0.85 ? smoothstep((1 - t) / 0.15) : 1
+
+      // 3 affirmative nods: larger amplitude than the generic nod, slight spine involvement
+      const nod = Math.max(0, Math.sin(t * Math.PI * 6)) * fade
+
+      if (neck) neck.rotation.x = nod * 0.30
+      if (head) head.rotation.x = nod * 0.12
+
+      if (rArm) rArm.rotation.z =  REST_ARM_Z
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
+    },
+  },
+
   dance: {
     duration: 3.0,
     fn(t, vrm) {

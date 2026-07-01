@@ -185,6 +185,8 @@ export class Avatar {
   clap(): this { return this._gesture("clap") }
   jump(): this { return this._gesture("jump") }
   dance(): this { return this._gesture("dance") }
+  yes(): this { return this._gesture("yes") }
+  no(): this { return this._gesture("no") }
 
   private _gesture(gesture: Gesture): this {
     this.events.emit("animationStart", { gesture })
