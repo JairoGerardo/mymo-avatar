@@ -340,6 +340,82 @@ const avatar = () => widgetRef.value?.avatar.value
 </template>
 ```
 
+## Next.js
+
+```bash
+npm install @mymo/react @mymo/avatar three
+```
+
+Because the avatar uses WebGL and `document.body`, it must run client-side only. There are two patterns depending on which Next.js router you use.
+
+**App Router (recommended)**
+
+Split the component into a separate file with `"use client"` and load it with `dynamic` + `ssr: false` from the page:
+
+```tsx
+// app/components/AvatarDemo.tsx
+"use client"
+
+import { useAvatar } from "@mymo/react"
+
+export default function AvatarDemo() {
+  const avatarRef = useAvatar({
+    model: "https://...",
+    position: "bottom-right",
+    framing: "bust",
+  })
+
+  return <button onClick={() => avatarRef.current?.wave()}>Wave</button>
+}
+```
+
+```tsx
+// app/page.tsx
+import dynamic from "next/dynamic"
+
+const AvatarDemo = dynamic(() => import("./components/AvatarDemo"), { ssr: false })
+
+export default function Page() {
+  return <AvatarDemo />
+}
+```
+
+Also add `transpilePackages` to your `next.config.ts`:
+
+```ts
+// next.config.ts
+import type { NextConfig } from "next"
+
+const nextConfig: NextConfig = {
+  transpilePackages: ["@mymo/avatar", "@mymo/react"],
+}
+
+export default nextConfig
+```
+
+**Pages Router**
+
+```tsx
+// pages/index.tsx
+import dynamic from "next/dynamic"
+
+const AvatarWidget = dynamic(
+  () => import("@mymo/react").then(m => m.AvatarWidget),
+  { ssr: false }
+)
+
+export default function Home() {
+  return (
+    <AvatarWidget
+      model="https://..."
+      position="bottom-right"
+      framing="bust"
+      theme="dark"
+    />
+  )
+}
+```
+
 ## CDN (UMD)
 
 ```html

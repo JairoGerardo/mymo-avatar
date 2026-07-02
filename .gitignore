@@ -3,6 +3,10 @@ dist
 *.d.ts.map
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+
 # Package manager
 node_modules
 .pnpm-store
