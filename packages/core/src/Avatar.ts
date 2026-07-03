@@ -12,6 +12,7 @@ import type {
   AvatarPlugin,
   AvatarPosition,
   AvatarFraming,
+  AvatarTheme,
   Expression,
   Gesture,
   AvatarState,
@@ -161,6 +162,11 @@ export class Avatar {
 
   setFramingConfig(config: FramingSliceConfig): this {
     this.renderer.setFramingConfig(config)
+    return this
+  }
+
+  setTheme(theme: AvatarTheme): this {
+    this.renderer.setTheme(theme)
     return this
   }
 

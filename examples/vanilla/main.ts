@@ -27,12 +27,14 @@ const FRAMING_CONFIG = {
   face: { from: 0.76, lookBias: 0.58 },
 }
 
+const INITIAL_THEME = "dark"
+
 const avatar = new Avatar({
   model: MODEL,
   framing: INITIAL_FRAMING,
   position: "bottom-right",
   size: 200,
-  theme: "dark",
+  theme: INITIAL_THEME,
   idle: true,
   idleInterval: 6000,
   blink: true,
@@ -147,6 +149,10 @@ const ACTIONS: Record<string, ActionFn> = {
   "frame-half":  () => avatar.frame("half"),
   "frame-bust":  () => avatar.frame("bust"),
   "frame-face":  () => avatar.frame("face"),
+  // Theme
+  "theme-light":       () => avatar.setTheme("light"),
+  "theme-dark":        () => avatar.setTheme("dark"),
+  "theme-transparent": () => avatar.setTheme("transparent"),
 }
 
 // ── Framing buttons + config sliders ─────────────────────────────────────────
@@ -209,13 +215,20 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
       syncSliders(currentFraming)
     }
 
+    // Track active theme button
+    if (btn.dataset["theme"]) {
+      document.querySelectorAll<HTMLButtonElement>("button[data-theme]").forEach(b => b.classList.remove("active"))
+      btn.classList.add("active")
+    }
+
     setLog(`avatar.${action}()`, true)
     ACTIONS[action]?.()
   })
 })
 
-// Mark initial active framing button
+// Mark initial active buttons
 document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
+document.querySelector<HTMLButtonElement>(`button[data-theme="${INITIAL_THEME}"]`)?.classList.add("active")
 
 // ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
 // async function inspectModel(url: string): Promise<void> {

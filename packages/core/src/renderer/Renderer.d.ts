@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { AvatarOptions, AvatarPosition } from "../types/index.js";
+import type { AvatarOptions, AvatarPosition, AvatarTheme } from "../types/index.js";
 type TickCallback = (delta: number) => void;
 export declare class Renderer {
     readonly scene: THREE.Scene;
@@ -23,6 +23,7 @@ export declare class Renderer {
     private _autoFit;
     show(): void;
     hide(): void;
+    setTheme(theme: AvatarTheme): void;
     setPosition(preset: AvatarPosition): void;
     setSize(px: number): void;
     moveTo(x: number, y: number): void;

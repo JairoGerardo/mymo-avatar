@@ -96,6 +96,10 @@ export class Renderer {
     if (options.draggable) this._makeDraggable()
   }
 
+  setTheme(theme: string): void {
+    this._applyTheme(theme, 0)
+  }
+
   private _applyTheme(theme: string, _size: number): void {
     const s = this.container.style
     if (theme === "dark") {
@@ -104,8 +108,10 @@ export class Renderer {
     } else if (theme === "light") {
       s.background = "radial-gradient(circle at 40% 35%, #f8f8ff 0%, #e0e0f0 100%)"
       s.boxShadow = `0 8px 32px rgba(0,0,0,0.15), 0 0 0 2px rgba(0,0,0,0.06)`
+    } else {
+      s.background = "transparent"
+      s.boxShadow = "none"
     }
-    // transparent: sin fondo ni sombra
     s.transition = "box-shadow 0.3s ease"
     s.setProperty("--ring-color", "transparent")
 

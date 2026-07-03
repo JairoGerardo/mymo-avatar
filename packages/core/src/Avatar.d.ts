@@ -1,4 +1,4 @@
-import type { AvatarOptions, AvatarEvent, AvatarEventCallback, AvatarPlugin, AvatarPosition, AvatarFraming, FramingSliceConfig, Expression, AvatarState } from "./types/index.js";
+import type { AvatarOptions, AvatarEvent, AvatarEventCallback, AvatarPlugin, AvatarPosition, AvatarFraming, AvatarTheme, FramingSliceConfig, Expression, AvatarState } from "./types/index.js";
 import type { Viseme } from "./audio/LipSync.js";
 export declare class Avatar {
     private readonly options;
@@ -22,6 +22,7 @@ export declare class Avatar {
     position(preset: AvatarPosition): this;
     frame(preset: AvatarFraming): this;
     setFramingConfig(config: FramingSliceConfig): this;
+    setTheme(theme: AvatarTheme): this;
     scale(factor: number): this;
     size(px: number): this;
     expression(expr: Expression, intensity?: number): this;
