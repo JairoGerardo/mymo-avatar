@@ -1,13 +1,25 @@
 import { useEffect, useState, useCallback } from "react"
 import { useAvatar } from "@mymo/react"
-import type { AvatarPosition, AvatarFraming } from "@mymo/avatar"
+import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymo/avatar"
 
-const INIT_FRAMING = {
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const INITIAL_FRAMING: AvatarFraming = "full"
+const INITIAL_THEME: AvatarTheme = "dark"
+
+const FRAMING_CONFIG = {
   full: { from: 0.00, lookBias: 0.50 },
-  half: { from: 0.50, lookBias: 0.55 },
-  bust: { from: 0.60, lookBias: 0.62 },
-  face: { from: 0.72, lookBias: 0.65 },
+  half: { from: 0.48, lookBias: 0.60 },
+  bust: { from: 0.60, lookBias: 0.70 },
+  face: { from: 0.76, lookBias: 0.58 },
 }
+
+const THEME_CONFIG = {
+  dark:  { color1: "#2a2a4a", color2: "#0d0d1a", shadowOpacity: 0.5  },
+  light: { color1: "#f8f8ff", color2: "#e0e0f0", shadowOpacity: 0.15 },
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function createSpeechTone(durationSec = 3): AudioBuffer {
   const ctx = new AudioContext()
@@ -27,6 +39,21 @@ function createSpeechTone(durationSec = 3): AudioBuffer {
   return buffer
 }
 
+type ThemeMode = "dark" | "light"
+type ThemeSlices = typeof THEME_CONFIG
+
+function buildThemeCss(mode: ThemeMode, slices: ThemeSlices) {
+  const { color1, color2, shadowOpacity } = slices[mode]
+  const ringOpacity = mode === "dark" ? 0.08 : 0.06
+  const ringColor   = mode === "dark" ? "255,255,255" : "0,0,0"
+  return {
+    background: `radial-gradient(circle at 40% 35%, ${color1} 0%, ${color2} 100%)`,
+    boxShadow:  `0 8px 32px rgba(0,0,0,${shadowOpacity}), 0 0 0 2px rgba(${ringColor},${ringOpacity})`,
+  }
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const S: Record<string, React.CSSProperties> = {
   page: {
     fontFamily: "system-ui, -apple-system, sans-serif",
@@ -37,7 +64,7 @@ const S: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: "2rem",
+    gap: "1.5rem",
     padding: "2rem",
   },
   h1: {
@@ -48,11 +75,11 @@ const S: Record<string, React.CSSProperties> = {
     WebkitTextFillColor: "transparent",
     letterSpacing: "-0.5px",
   },
-  subtitle: { fontSize: "0.9rem", color: "#888", marginTop: "-1.5rem" },
-  controls: { display: "flex", flexWrap: "wrap", gap: "0.5rem", justifyContent: "center", maxWidth: 600 },
-  group: { display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "center" },
-  groupLabel: { fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: 1, color: "#666" },
-  btnRow: { display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "center" },
+  subtitle:   { fontSize: "0.9rem", color: "#888", marginTop: "-1rem" },
+  controls:   { display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", width: "100%", maxWidth: 680 },
+  group:      { display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "center", width: "100%" },
+  groupLabel: { fontSize: "0.65rem", textTransform: "uppercase" as const, letterSpacing: 1, color: "#666" },
+  btnRow:     { display: "flex", gap: "0.4rem", flexWrap: "wrap" as const, justifyContent: "center" },
   btn: {
     padding: "0.45rem 0.9rem",
     border: "1px solid rgba(167,139,250,0.3)",
@@ -61,6 +88,7 @@ const S: Record<string, React.CSSProperties> = {
     color: "#c4b5fd",
     fontSize: "0.8rem",
     cursor: "pointer",
+    transition: "all 0.15s ease",
   },
   btnActive: {
     padding: "0.45rem 0.9rem",
@@ -71,20 +99,30 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: "0.8rem",
     cursor: "pointer",
   },
-  sliderRow: { display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", color: "#aaa", width: "100%" },
-  sliderLabel: { minWidth: "4.5rem", textAlign: "right", color: "#888" },
-  sliderVal: { minWidth: "2.5rem", fontFamily: "monospace", color: "#c4b5fd" },
+  divider:    { width: "100%", border: "none", borderTop: "1px solid rgba(167,139,250,0.1)" },
+  inlineRow:  { display: "flex", gap: "1.5rem", flexWrap: "wrap" as const, justifyContent: "center", width: "100%" },
+  configPanel:{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", width: "100%" },
+  configBox:  { display: "flex", flexDirection: "column", gap: "0.5rem", padding: "0.75rem", border: "1px solid rgba(167,139,250,0.15)", borderRadius: 10, background: "rgba(167,139,250,0.04)" },
+  sliderRow:  { display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", color: "#aaa", width: "100%" },
+  sliderLabel:{ minWidth: "4rem", textAlign: "right" as const, color: "#888" },
+  sliderVal:  { minWidth: "2.5rem", fontFamily: "monospace", color: "#c4b5fd" },
+  colorRow:   { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.75rem", color: "#888" },
+  colorInput: { width: "2.2rem", height: "1.5rem", cursor: "pointer", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 4, background: "none", padding: 1 },
 }
 
 const FRAMINGS: AvatarFraming[] = ["full", "half", "bust", "face"]
+const THEMES: AvatarTheme[]     = ["light", "dark", "transparent"]
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export function App() {
   const avatarRef = useAvatar({
-    model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
-    framing: "full",
+    // model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
+    model: "/Maya.vrm",
+    framing: INITIAL_FRAMING,
     position: "bottom-right",
     size: 400,
-    theme: "dark",
+    theme: INITIAL_THEME,
     idle: true,
     idleInterval: 6000,
     blink: true,
@@ -92,14 +130,21 @@ export function App() {
     lipSync: true,
     draggable: true,
     zIndex: 9999,
-    framingConfig: INIT_FRAMING,
+    framingConfig: FRAMING_CONFIG,
+    themeConfig: {
+      dark:  buildThemeCss("dark",  THEME_CONFIG),
+      light: buildThemeCss("light", THEME_CONFIG),
+    },
   })
 
-  const [log, setLog] = useState("Initializing…")
-  const [logActive, setLogActive] = useState(false)
-  const [talking, setTalking] = useState(false)
-  const [activeFraming, setActiveFraming] = useState<AvatarFraming>("full")
-  const [slices, setSlices] = useState({ ...INIT_FRAMING })
+  const [log, setLog]               = useState("Initializing…")
+  const [logActive, setLogActive]   = useState(false)
+  const [talking, setTalking]       = useState(false)
+  const [activeFraming, setActiveFraming] = useState<AvatarFraming>(INITIAL_FRAMING)
+  const [activeTheme, setActiveTheme]     = useState<AvatarTheme>(INITIAL_THEME)
+  const [themeMode, setThemeMode]   = useState<ThemeMode>("dark")
+  const [slices, setSlices]         = useState({ ...FRAMING_CONFIG })
+  const [themeSlices, setThemeSlices] = useState<ThemeSlices>({ ...THEME_CONFIG })
 
   const flash = useCallback((msg: string) => {
     setLog(msg)
@@ -110,12 +155,12 @@ export function App() {
   useEffect(() => {
     const a = avatarRef.current
     if (!a) return
-    a.on("loaded",         ()                       => flash("Avatar loaded ✓"))
-    a.on("modelLoaded",    ()                       => flash("Model ready ✓"))
-    a.on("click",          ()                       => { a.wave(); flash("avatar.wave()") })
-    a.on("animationStart", (_: string, d: unknown)  => flash(`animationStart: ${JSON.stringify(d)}`))
-    a.on("speechStart",    ()                       => { setLog("speechStart — talking…"); setLogActive(false); setTalking(true) })
-    a.on("speechEnd",      ()                       => { flash("speechEnd ✓"); setTalking(false) })
+    a.on("loaded",         ()                      => flash("Avatar loaded ✓"))
+    a.on("modelLoaded",    ()                      => flash("Model ready ✓"))
+    a.on("click",          ()                      => { a.wave(); flash("avatar.wave()") })
+    a.on("animationStart", (_: string, d: unknown) => flash(`animationStart: ${JSON.stringify(d)}`))
+    a.on("speechStart",    ()                      => { setLog("speechStart — talking…"); setLogActive(false); setTalking(true) })
+    a.on("speechEnd",      ()                      => { flash("speechEnd ✓"); setTalking(false) })
   }, [flash]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const av = () => avatarRef.current!
@@ -131,6 +176,12 @@ export function App() {
     flash(`avatar.frame("${mode}")`)
   }
 
+  function selectTheme(theme: AvatarTheme) {
+    setActiveTheme(theme)
+    av().setTheme(theme)
+    flash(`avatar.setTheme("${theme}")`)
+  }
+
   function updateSlice(mode: AvatarFraming, key: "from" | "lookBias", value: number) {
     setSlices(prev => {
       const next = { ...prev, [mode]: { ...prev[mode], [key]: value } }
@@ -140,11 +191,21 @@ export function App() {
     })
   }
 
-  const cfg = slices[activeFraming]
+  function updateThemeSlice(mode: ThemeMode, key: keyof ThemeSlices[ThemeMode], value: string | number) {
+    setThemeSlices(prev => {
+      const next = { ...prev, [mode]: { ...prev[mode], [key]: value } } as ThemeSlices
+      avatarRef.current?.setThemeConfig({ [mode]: buildThemeCss(mode, next) })
+      flash(`themeConfig.${mode}.${key} updated`)
+      return next
+    })
+  }
 
-  function group(label: string, children: React.ReactNode) {
+  const cfg      = slices[activeFraming]
+  const themeCfg = themeSlices[themeMode]
+
+  function group(label: string, children: React.ReactNode, style?: React.CSSProperties) {
     return (
-      <div style={S.group}>
+      <div style={{ ...S.group, width: "auto", ...style }}>
         <span style={S.groupLabel}>{label}</span>
         <div style={S.btnRow}>{children}</div>
       </div>
@@ -161,82 +222,140 @@ export function App() {
       <p style={S.subtitle}>SDK Demo — lightweight animated avatar</p>
 
       <div style={S.controls}>
-        {group("Expressions", <>
-          {btn("smile",     () => av().smile())}
-          {btn("happy",     () => av().happy())}
-          {btn("sad",       () => av().sad())}
-          {btn("angry",     () => av().angry())}
-          {btn("surprised", () => av().surprised())}
-          {btn("thinking",  () => av().thinking())}
-          {btn("confused",  () => av().confused())}
-          {btn("sleep",     () => av().sleep())}
-          {btn("idle",      () => av().idle())}
-        </>)}
 
-        {group("Gestures", <>
-          {btn("wave",      () => av().wave())}
-          {btn("nod",       () => av().nod())}
-          {btn("yes",       () => av().yes())}
-          {btn("no",        () => av().no())}
-          {btn("shakeHead", () => av().shakeHead())}
-          {btn("clap",      () => av().clap())}
-          {btn("jump",      () => av().jump())}
-          {btn("dance",     () => av().dance())}
-          {btn("thumbsUp", () => av().thumbsUp())}
-        </>)}
-
-        {group("States", <>
-          {btn("loading",    () => av().loading())}
-          {btn("success",    () => av().success())}
-          {btn("error",      () => av().error())}
-          {btn("warning",    () => av().warning())}
-          {btn("listening",  () => av().listening())}
-          {btn("typing",     () => av().typing())}
-          {btn("processing", () => av().processing())}
-          {btn("complete",   () => av().complete())}
-          {btn("clearState", () => av().clearState())}
-        </>)}
-
-        {group("Look", <>
-          {btn("lookAtMouse", () => av().lookAtMouse())}
-          {btn("lookForward", () => av().lookForward())}
-          {btn("randomLook",  () => av().randomLook())}
-        </>)}
-
-        {group("Speech", <>
-          {btn("talk",        () => av().talk(createSpeechTone(3)).catch(console.error))}
-          {btn("stopTalking", () => av().stopTalking())}
-        </>)}
-
-        {group("Position", <>
-          {btn("bottom-right", () => av().position("bottom-right" as AvatarPosition))}
-          {btn("bottom-left",  () => av().position("bottom-left"  as AvatarPosition))}
-          {btn("top-right",    () => av().position("top-right"    as AvatarPosition))}
-          {btn("top-left",     () => av().position("top-left"     as AvatarPosition))}
-        </>)}
-
-        {group("Framing",
-          FRAMINGS.map(m => (
-            <button key={m} style={activeFraming === m ? S.btnActive : S.btn} onClick={() => selectFraming(m)}>{m}</button>
-          ))
-        )}
-
-        <div style={{ ...S.group, width: "100%", maxWidth: 340 }}>
-          <span style={S.groupLabel}>Framing Config — {activeFraming}</span>
-          <div style={S.sliderRow}>
-            <label style={S.sliderLabel}>from</label>
-            <input type="range" min={0} max={1} step={0.01} value={cfg.from}
-              style={{ flex: 1, accentColor: "#a78bfa" }}
-              onChange={e => updateSlice(activeFraming, "from", parseFloat(e.target.value))} />
-            <span style={S.sliderVal}>{cfg.from.toFixed(2)}</span>
+        {/* Expressions */}
+        <div style={{ ...S.group }}>
+          <span style={S.groupLabel}>Expressions</span>
+          <div style={S.btnRow}>
+            {btn("smile",     () => av().smile())}
+            {btn("happy",     () => av().happy())}
+            {btn("sad",       () => av().sad())}
+            {btn("angry",     () => av().angry())}
+            {btn("surprised", () => av().surprised())}
+            {btn("thinking",  () => av().thinking())}
+            {btn("confused",  () => av().confused())}
+            {btn("sleep",     () => av().sleep())}
+            {btn("idle",      () => av().idle())}
           </div>
-          <div style={S.sliderRow}>
-            <label style={S.sliderLabel}>lookBias</label>
-            <input type="range" min={0} max={1} step={0.01} value={cfg.lookBias}
-              style={{ flex: 1, accentColor: "#a78bfa" }}
-              onChange={e => updateSlice(activeFraming, "lookBias", parseFloat(e.target.value))} />
-            <span style={S.sliderVal}>{cfg.lookBias.toFixed(2)}</span>
+        </div>
+
+        <hr style={S.divider} />
+
+        {/* Gestures */}
+        <div style={S.group}>
+          <span style={S.groupLabel}>Gestures</span>
+          <div style={S.btnRow}>
+            {btn("wave",      () => av().wave())}
+            {btn("nod",       () => av().nod())}
+            {btn("yes",       () => av().yes())}
+            {btn("no",        () => av().no())}
+            {btn("shakeHead", () => av().shakeHead())}
+            {btn("clap",      () => av().clap())}
+            {btn("jump",      () => av().jump())}
+            {btn("dance",     () => av().dance())}
+            {btn("thumbsUp",  () => av().thumbsUp())}
           </div>
+        </div>
+
+        <hr style={S.divider} />
+
+        {/* States */}
+        <div style={S.group}>
+          <span style={S.groupLabel}>States</span>
+          <div style={S.btnRow}>
+            {btn("loading",    () => av().loading())}
+            {btn("success",    () => av().success())}
+            {btn("error",      () => av().error())}
+            {btn("warning",    () => av().warning())}
+            {btn("listening",  () => av().listening())}
+            {btn("typing",     () => av().typing())}
+            {btn("processing", () => av().processing())}
+            {btn("complete",   () => av().complete())}
+            {btn("clearState", () => av().clearState())}
+          </div>
+        </div>
+
+        <hr style={S.divider} />
+
+        {/* Look · Speech · Position */}
+        <div style={S.inlineRow}>
+          {group("Look", <>
+            {btn("lookAtMouse", () => av().lookAtMouse())}
+            {btn("lookForward", () => av().lookForward())}
+            {btn("randomLook",  () => av().randomLook())}
+          </>)}
+          {group("Speech", <>
+            {btn("talk",        () => av().talk(createSpeechTone(3)).catch(console.error))}
+            {btn("stopTalking", () => av().stopTalking())}
+          </>)}
+          {group("Position", <>
+            {btn("bottom-right", () => av().position("bottom-right" as AvatarPosition))}
+            {btn("bottom-left",  () => av().position("bottom-left"  as AvatarPosition))}
+            {btn("top-right",    () => av().position("top-right"    as AvatarPosition))}
+            {btn("top-left",     () => av().position("top-left"     as AvatarPosition))}
+          </>)}
+        </div>
+
+        <hr style={S.divider} />
+
+        {/* Framing + Theme config panel */}
+        <div style={S.configPanel}>
+
+          {/* Framing */}
+          <div style={S.configBox}>
+            <span style={{ ...S.groupLabel, alignSelf: "center" }}>Framing — {activeFraming}</span>
+            <div style={S.btnRow}>
+              {FRAMINGS.map(m => (
+                <button key={m} style={activeFraming === m ? S.btnActive : S.btn} onClick={() => selectFraming(m)}>{m}</button>
+              ))}
+            </div>
+            <div style={S.sliderRow}>
+              <label style={S.sliderLabel}>from</label>
+              <input type="range" min={0} max={1} step={0.01} value={cfg.from}
+                style={{ flex: 1, accentColor: "#a78bfa" }}
+                onChange={e => updateSlice(activeFraming, "from", parseFloat(e.target.value))} />
+              <span style={S.sliderVal}>{cfg.from.toFixed(2)}</span>
+            </div>
+            <div style={S.sliderRow}>
+              <label style={S.sliderLabel}>lookBias</label>
+              <input type="range" min={0} max={1} step={0.01} value={cfg.lookBias}
+                style={{ flex: 1, accentColor: "#a78bfa" }}
+                onChange={e => updateSlice(activeFraming, "lookBias", parseFloat(e.target.value))} />
+              <span style={S.sliderVal}>{cfg.lookBias.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Theme */}
+          <div style={S.configBox}>
+            <span style={{ ...S.groupLabel, alignSelf: "center" }}>Theme</span>
+            <div style={S.btnRow}>
+              {THEMES.map(t => (
+                <button key={t} style={activeTheme === t ? S.btnActive : S.btn} onClick={() => selectTheme(t)}>{t}</button>
+              ))}
+            </div>
+            <span style={{ ...S.groupLabel, alignSelf: "center", marginTop: "0.25rem" }}>Config — {themeMode}</span>
+            <div style={S.btnRow}>
+              {(["dark", "light"] as ThemeMode[]).map(m => (
+                <button key={m} style={themeMode === m ? S.btnActive : S.btn} onClick={() => setThemeMode(m)}>{m}</button>
+              ))}
+            </div>
+            <div style={S.colorRow}>
+              <label>center</label>
+              <input type="color" value={themeCfg.color1} style={S.colorInput}
+                onChange={e => updateThemeSlice(themeMode, "color1", e.target.value)} />
+              <label>edge</label>
+              <input type="color" value={themeCfg.color2} style={S.colorInput}
+                onChange={e => updateThemeSlice(themeMode, "color2", e.target.value)} />
+            </div>
+            <div style={S.sliderRow}>
+              <label style={S.sliderLabel}>shadow</label>
+              <input type="range" min={0} max={1} step={0.05} value={themeCfg.shadowOpacity}
+                style={{ flex: 1, accentColor: "#a78bfa" }}
+                onChange={e => updateThemeSlice(themeMode, "shadowOpacity", parseFloat(e.target.value))} />
+              <span style={S.sliderVal}>{themeCfg.shadowOpacity.toFixed(2)}</span>
+            </div>
+          </div>
+
         </div>
       </div>
 

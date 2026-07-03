@@ -38,7 +38,7 @@ const avatar = new Avatar({
   model: MODEL,
   framing: INITIAL_FRAMING,
   position: "bottom-right",
-  size: 200,
+  size: 400,
   theme: INITIAL_THEME,
   idle: true,
   idleInterval: 6000,
@@ -170,7 +170,7 @@ const themeSlices = {
 
 let currentThemeMode: "dark" | "light" = "dark"
 
-const tcModeLabel   = document.getElementById("tc-mode-label")!
+const tcConfigPanel = document.getElementById("tc-config-panel")!
 const tcColor1      = document.getElementById("tc-color1")  as HTMLInputElement
 const tcColor2      = document.getElementById("tc-color2")  as HTMLInputElement
 const tcShadow      = document.getElementById("tc-shadow")  as HTMLInputElement
@@ -192,7 +192,6 @@ function syncThemePickers(mode: "dark" | "light"): void {
   tcColor2.value          = s.color2
   tcShadow.value          = String(s.shadowOpacity)
   tcShadowVal.textContent = s.shadowOpacity.toFixed(2)
-  tcModeLabel.textContent = mode
 }
 
 function applyThemeConfig(mode: "dark" | "light"): void {
@@ -219,17 +218,8 @@ tcShadow.addEventListener("input", () => {
   setLog(`themeConfig.${currentThemeMode}.shadow = ${v.toFixed(2)}`, true)
 })
 
-document.querySelectorAll<HTMLButtonElement>("button[data-tc-mode]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll<HTMLButtonElement>("button[data-tc-mode]").forEach(b => b.classList.remove("active"))
-    btn.classList.add("active")
-    currentThemeMode = btn.dataset["tcMode"] as "dark" | "light"
-    syncThemePickers(currentThemeMode)
-  })
-})
-
 syncThemePickers(currentThemeMode)
-document.querySelector<HTMLButtonElement>(`button[data-tc-mode="${currentThemeMode}"]`)?.classList.add("active")
+tcConfigPanel.style.display = ""
 
 // ── Framing buttons + config sliders ─────────────────────────────────────────
 
@@ -291,10 +281,18 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
       syncSliders(currentFraming)
     }
 
-    // Track active theme button
+    // Track active theme button and sync config panel
     if (btn.dataset["theme"]) {
       document.querySelectorAll<HTMLButtonElement>("button[data-theme]").forEach(b => b.classList.remove("active"))
       btn.classList.add("active")
+      const theme = btn.dataset["theme"] as "dark" | "light" | "transparent"
+      if (theme === "transparent") {
+        tcConfigPanel.style.display = "none"
+      } else {
+        currentThemeMode = theme
+        syncThemePickers(currentThemeMode)
+        tcConfigPanel.style.display = ""
+      }
     }
 
     setLog(`avatar.${action}()`, true)

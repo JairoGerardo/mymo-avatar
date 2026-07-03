@@ -1,57 +1,35 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from "vue"
 import { useAvatar } from "@mymo/vue"
-import type { AvatarPosition, AvatarFraming } from "@mymo/avatar"
+import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymo/avatar"
 
-const framingSlices = reactive({
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const INITIAL_FRAMING: AvatarFraming = "full"
+const INITIAL_THEME: AvatarTheme = "dark"
+
+const FRAMING_CONFIG = {
   full: { from: 0.00, lookBias: 0.50 },
-  half: { from: 0.50, lookBias: 0.55 },
-  bust: { from: 0.60, lookBias: 0.62 },
-  face: { from: 0.72, lookBias: 0.65 },
-})
-
-const avatar = useAvatar({
-  model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
-  framing: "full",
-  position: "bottom-right",
-  size: 400,
-  theme: "dark",
-  idle: true,
-  idleInterval: 6000,
-  blink: true,
-  blinkInterval: 3000,
-  lipSync: true,
-  draggable: true,
-  zIndex: 9999,
-  framingConfig: { ...framingSlices },
-})
-
-const log = ref("Initializing…")
-const logActive = ref(false)
-const talking = ref(false)
-const activeFraming = ref<AvatarFraming>("full")
-
-function flash(msg: string) {
-  log.value = msg
-  logActive.value = true
-  setTimeout(() => (logActive.value = false), 2000)
+  half: { from: 0.48, lookBias: 0.60 },
+  bust: { from: 0.60, lookBias: 0.70 },
+  face: { from: 0.76, lookBias: 0.58 },
 }
 
-watch(avatar, (a) => {
-  if (!a) return
-  a.on("loaded",         ()                       => flash("Avatar loaded ✓"))
-  a.on("modelLoaded",    ()                       => flash("Model ready ✓"))
-  a.on("click",          ()                       => { a.wave(); flash("avatar.wave()") })
-  a.on("animationStart", (_: string, d: unknown)  => flash(`animationStart: ${JSON.stringify(d)}`))
-  a.on("speechStart",    ()                       => { log.value = "speechStart — talking…"; logActive.value = false; talking.value = true })
-  a.on("speechEnd",      ()                       => { flash("speechEnd ✓"); talking.value = false })
-}, { immediate: true })
+const THEME_CONFIG = {
+  dark:  { color1: "#2a2a4a", color2: "#0d0d1a", shadowOpacity: 0.5  },
+  light: { color1: "#f8f8ff", color2: "#e0e0f0", shadowOpacity: 0.15 },
+}
 
-const av = () => avatar.value!
+type ThemeMode = "dark" | "light"
 
-function act(label: string, fn: () => void) {
-  flash(`avatar.${label}()`)
-  fn()
+function buildThemeCss(mode: ThemeMode, slices: typeof THEME_CONFIG) {
+  const { color1, color2, shadowOpacity } = slices[mode]
+  const ringOpacity = mode === "dark" ? 0.08 : 0.06
+  const ringColor   = mode === "dark" ? "255,255,255" : "0,0,0"
+  return {
+    background: `radial-gradient(circle at 40% 35%, ${color1} 0%, ${color2} 100%)`,
+    boxShadow:  `0 8px 32px rgba(0,0,0,${shadowOpacity}), 0 0 0 2px rgba(${ringColor},${ringOpacity})`,
+  }
 }
 
 function createSpeechTone(durationSec = 3): AudioBuffer {
@@ -72,7 +50,68 @@ function createSpeechTone(durationSec = 3): AudioBuffer {
   return buffer
 }
 
+// ── State ─────────────────────────────────────────────────────────────────────
+
+const framingSlices = reactive({ ...FRAMING_CONFIG })
+const themeSlices   = reactive({ ...THEME_CONFIG })
+
+const avatar = useAvatar({
+  //model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
+  model: "/Maya.vrm",
+  framing: INITIAL_FRAMING,
+  position: "bottom-right",
+  size: 400,
+  theme: INITIAL_THEME,
+  idle: true,
+  idleInterval: 6000,
+  blink: true,
+  blinkInterval: 3000,
+  lipSync: true,
+  draggable: true,
+  zIndex: 9999,
+  framingConfig: FRAMING_CONFIG,
+  themeConfig: {
+    dark:  buildThemeCss("dark",  THEME_CONFIG),
+    light: buildThemeCss("light", THEME_CONFIG),
+  },
+})
+
+const log          = ref("Initializing…")
+const logActive    = ref(false)
+const talking      = ref(false)
+const activeFraming = ref<AvatarFraming>(INITIAL_FRAMING)
+const activeTheme  = ref<AvatarTheme>(INITIAL_THEME)
+const themeMode    = ref<ThemeMode>("dark")
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function flash(msg: string) {
+  log.value = msg
+  logActive.value = true
+  setTimeout(() => (logActive.value = false), 2000)
+}
+
+watch(avatar, (a) => {
+  if (!a) return
+  a.on("loaded",         ()                      => flash("Avatar loaded ✓"))
+  a.on("modelLoaded",    ()                      => flash("Model ready ✓"))
+  a.on("click",          ()                      => { a.wave(); flash("avatar.wave()") })
+  a.on("animationStart", (_: string, d: unknown) => flash(`animationStart: ${JSON.stringify(d)}`))
+  a.on("speechStart",    ()                      => { log.value = "speechStart — talking…"; logActive.value = false; talking.value = true })
+  a.on("speechEnd",      ()                      => { flash("speechEnd ✓"); talking.value = false })
+}, { immediate: true })
+
+const av = () => avatar.value!
+
+function act(label: string, fn: () => void) {
+  flash(`avatar.${label}()`)
+  fn()
+}
+
+// ── Framing ───────────────────────────────────────────────────────────────────
+
 const FRAMINGS: AvatarFraming[] = ["full", "half", "bust", "face"]
+const THEMES: AvatarTheme[]     = ["light", "dark", "transparent"]
 
 function selectFraming(mode: AvatarFraming) {
   activeFraming.value = mode
@@ -87,6 +126,22 @@ function updateSlice(mode: AvatarFraming, key: "from" | "lookBias", value: numbe
 }
 
 const cfg = computed(() => framingSlices[activeFraming.value])
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function selectTheme(theme: AvatarTheme) {
+  activeTheme.value = theme
+  av().setTheme(theme)
+  flash(`avatar.setTheme("${theme}")`)
+}
+
+function updateThemeSlice(mode: ThemeMode, key: "color1" | "color2" | "shadowOpacity", value: string | number) {
+  (themeSlices[mode] as Record<string, string | number>)[key] = value
+  avatar.value?.setThemeConfig({ [mode]: buildThemeCss(mode, themeSlices) })
+  flash(`themeConfig.${mode}.${key} updated`)
+}
+
+const themeCfg = computed(() => themeSlices[themeMode.value])
 </script>
 
 <template>
@@ -95,6 +150,8 @@ const cfg = computed(() => framingSlices[activeFraming.value])
     <p class="subtitle">SDK Demo — lightweight animated avatar</p>
 
     <div class="controls">
+
+      <!-- Expressions -->
       <div class="group">
         <span class="group-label">Expressions</span>
         <div class="btn-row">
@@ -110,6 +167,9 @@ const cfg = computed(() => framingSlices[activeFraming.value])
         </div>
       </div>
 
+      <hr class="divider" />
+
+      <!-- Gestures -->
       <div class="group">
         <span class="group-label">Gestures</span>
         <div class="btn-row">
@@ -121,10 +181,13 @@ const cfg = computed(() => framingSlices[activeFraming.value])
           <button @click="act('clap',      () => av().clap())">clap</button>
           <button @click="act('jump',      () => av().jump())">jump</button>
           <button @click="act('dance',     () => av().dance())">dance</button>
-          <button @click="act('thumbsUp', () => av().thumbsUp())">thumbsUp</button>
+          <button @click="act('thumbsUp',  () => av().thumbsUp())">thumbsUp</button>
         </div>
       </div>
 
+      <hr class="divider" />
+
+      <!-- States -->
       <div class="group">
         <span class="group-label">States</span>
         <div class="btn-row">
@@ -140,58 +203,96 @@ const cfg = computed(() => framingSlices[activeFraming.value])
         </div>
       </div>
 
-      <div class="group">
-        <span class="group-label">Look</span>
-        <div class="btn-row">
-          <button @click="act('lookAtMouse', () => av().lookAtMouse())">lookAtMouse</button>
-          <button @click="act('lookForward', () => av().lookForward())">lookForward</button>
-          <button @click="act('randomLook',  () => av().randomLook())">randomLook</button>
+      <hr class="divider" />
+
+      <!-- Look · Speech · Position -->
+      <div class="inline-row">
+        <div class="group inline-group">
+          <span class="group-label">Look</span>
+          <div class="btn-row">
+            <button @click="act('lookAtMouse', () => av().lookAtMouse())">lookAtMouse</button>
+            <button @click="act('lookForward', () => av().lookForward())">lookForward</button>
+            <button @click="act('randomLook',  () => av().randomLook())">randomLook</button>
+          </div>
+        </div>
+        <div class="group inline-group">
+          <span class="group-label">Speech</span>
+          <div class="btn-row">
+            <button @click="act('talk',        () => av().talk(createSpeechTone(3)).catch(console.error))">talk</button>
+            <button @click="act('stopTalking', () => av().stopTalking())">stopTalking</button>
+          </div>
+        </div>
+        <div class="group inline-group">
+          <span class="group-label">Position</span>
+          <div class="btn-row">
+            <button @click="act('pos-bottom-right', () => av().position('bottom-right' as AvatarPosition))">bottom-right</button>
+            <button @click="act('pos-bottom-left',  () => av().position('bottom-left'  as AvatarPosition))">bottom-left</button>
+            <button @click="act('pos-top-right',    () => av().position('top-right'    as AvatarPosition))">top-right</button>
+            <button @click="act('pos-top-left',     () => av().position('top-left'     as AvatarPosition))">top-left</button>
+          </div>
         </div>
       </div>
 
-      <div class="group">
-        <span class="group-label">Speech</span>
-        <div class="btn-row">
-          <button @click="act('talk',        () => av().talk(createSpeechTone(3)).catch(console.error))">talk</button>
-          <button @click="act('stopTalking', () => av().stopTalking())">stopTalking</button>
-        </div>
-      </div>
+      <hr class="divider" />
 
-      <div class="group">
-        <span class="group-label">Position</span>
-        <div class="btn-row">
-          <button @click="act('pos-bottom-right', () => av().position('bottom-right' as AvatarPosition))">bottom-right</button>
-          <button @click="act('pos-bottom-left',  () => av().position('bottom-left'  as AvatarPosition))">bottom-left</button>
-          <button @click="act('pos-top-right',    () => av().position('top-right'    as AvatarPosition))">top-right</button>
-          <button @click="act('pos-top-left',     () => av().position('top-left'     as AvatarPosition))">top-left</button>
-        </div>
-      </div>
+      <!-- Framing + Theme config panel -->
+      <div class="config-panel">
 
-      <div class="group">
-        <span class="group-label">Framing</span>
-        <div class="btn-row">
-          <button
-            v-for="m in FRAMINGS" :key="m"
-            :class="{ active: activeFraming === m }"
-            @click="selectFraming(m)"
-          >{{ m }}</button>
+        <!-- Framing -->
+        <div class="config-box">
+          <span class="group-label center">Framing — {{ activeFraming }}</span>
+          <div class="btn-row">
+            <button
+              v-for="m in FRAMINGS" :key="m"
+              :class="{ active: activeFraming === m }"
+              @click="selectFraming(m)"
+            >{{ m }}</button>
+          </div>
+          <div class="slider-row">
+            <label>from</label>
+            <input type="range" min="0" max="1" step="0.01" :value="cfg.from"
+              @input="updateSlice(activeFraming, 'from', parseFloat(($event.target as HTMLInputElement).value))" />
+            <span class="val">{{ cfg.from.toFixed(2) }}</span>
+          </div>
+          <div class="slider-row">
+            <label>lookBias</label>
+            <input type="range" min="0" max="1" step="0.01" :value="cfg.lookBias"
+              @input="updateSlice(activeFraming, 'lookBias', parseFloat(($event.target as HTMLInputElement).value))" />
+            <span class="val">{{ cfg.lookBias.toFixed(2) }}</span>
+          </div>
         </div>
-      </div>
 
-      <div class="group framing-cfg">
-        <span class="group-label">Framing Config — {{ activeFraming }}</span>
-        <div class="slider-row">
-          <label>from</label>
-          <input type="range" min="0" max="1" step="0.01" :value="cfg.from"
-            @input="updateSlice(activeFraming, 'from', parseFloat(($event.target as HTMLInputElement).value))" />
-          <span class="val">{{ cfg.from.toFixed(2) }}</span>
+        <!-- Theme -->
+        <div class="config-box">
+          <span class="group-label center">Theme</span>
+          <div class="btn-row">
+            <button
+              v-for="t in THEMES" :key="t"
+              :class="{ active: activeTheme === t }"
+              @click="selectTheme(t)"
+            >{{ t }}</button>
+          </div>
+          <span class="group-label center" style="margin-top: 0.25rem">Config — {{ themeMode }}</span>
+          <div class="btn-row">
+            <button :class="{ active: themeMode === 'dark' }"  @click="themeMode = 'dark'">dark</button>
+            <button :class="{ active: themeMode === 'light' }" @click="themeMode = 'light'">light</button>
+          </div>
+          <div class="color-row">
+            <label>center</label>
+            <input type="color" :value="themeCfg.color1"
+              @input="updateThemeSlice(themeMode, 'color1', ($event.target as HTMLInputElement).value)" />
+            <label>edge</label>
+            <input type="color" :value="themeCfg.color2"
+              @input="updateThemeSlice(themeMode, 'color2', ($event.target as HTMLInputElement).value)" />
+          </div>
+          <div class="slider-row">
+            <label>shadow</label>
+            <input type="range" min="0" max="1" step="0.05" :value="themeCfg.shadowOpacity"
+              @input="updateThemeSlice(themeMode, 'shadowOpacity', parseFloat(($event.target as HTMLInputElement).value))" />
+            <span class="val">{{ themeCfg.shadowOpacity.toFixed(2) }}</span>
+          </div>
         </div>
-        <div class="slider-row">
-          <label>lookBias</label>
-          <input type="range" min="0" max="1" step="0.01" :value="cfg.lookBias"
-            @input="updateSlice(activeFraming, 'lookBias', parseFloat(($event.target as HTMLInputElement).value))" />
-          <span class="val">{{ cfg.lookBias.toFixed(2) }}</span>
-        </div>
+
       </div>
     </div>
 
@@ -218,7 +319,7 @@ const cfg = computed(() => framingSlices[activeFraming.value])
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 2rem;
 }
 
@@ -231,14 +332,15 @@ const cfg = computed(() => framingSlices[activeFraming.value])
   letter-spacing: -0.5px;
 }
 
-.subtitle { font-size: 0.9rem; color: #888; margin-top: -1.5rem; }
+.subtitle { font-size: 0.9rem; color: #888; margin-top: -1rem; }
 
 .controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  max-width: 600px;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  max-width: 680px;
 }
 
 .group {
@@ -246,7 +348,10 @@ const cfg = computed(() => framingSlices[activeFraming.value])
   flex-direction: column;
   gap: 0.4rem;
   align-items: center;
+  width: 100%;
 }
+
+.inline-group { width: auto; }
 
 .group-label {
   font-size: 0.65rem;
@@ -254,6 +359,8 @@ const cfg = computed(() => framingSlices[activeFraming.value])
   letter-spacing: 1px;
   color: #666;
 }
+
+.group-label.center { align-self: center; }
 
 .btn-row {
   display: flex;
@@ -272,20 +379,47 @@ button {
   cursor: pointer;
   transition: all 0.15s ease;
 }
-
 button:hover {
   background: rgba(167, 139, 250, 0.2);
   border-color: rgba(167, 139, 250, 0.6);
   color: #fff;
 }
-
 button.active {
   background: rgba(167, 139, 250, 0.3);
   border-color: rgba(167, 139, 250, 0.9);
   color: #fff;
 }
 
-.framing-cfg { width: 100%; max-width: 340px; }
+.divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(167, 139, 250, 0.1);
+}
+
+.inline-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.config-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.config-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  border-radius: 10px;
+  background: rgba(167, 139, 250, 0.04);
+}
 
 .slider-row {
   display: flex;
@@ -295,23 +429,33 @@ button.active {
   color: #aaa;
   width: 100%;
 }
-
-.slider-row label { min-width: 4.5rem; text-align: right; color: #888; }
+.slider-row label { min-width: 4rem; text-align: right; color: #888; }
 .slider-row input[type="range"] { flex: 1; accent-color: #a78bfa; cursor: pointer; }
 .val { min-width: 2.5rem; font-family: monospace; color: #c4b5fd; }
+
+.color-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #888;
+}
+input[type="color"] {
+  width: 2.2rem;
+  height: 1.5rem;
+  cursor: pointer;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 4px;
+  background: none;
+  padding: 1px;
+}
 
 .amp-wrap { display: flex; align-items: center; gap: 0.5rem; width: 260px; }
 .amp-label { font-size: 0.7rem; color: #a78bfa; }
 .amp-track { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
 .amp-bar { height: 100%; width: 60%; background: linear-gradient(90deg, #a78bfa, #60a5fa); border-radius: 3px; }
 
-.log {
-  font-size: 0.75rem;
-  color: #555;
-  font-family: monospace;
-  height: 1.2rem;
-  transition: color 0.3s;
-}
-
+.log { font-size: 0.75rem; color: #555; font-family: monospace; height: 1.2rem; transition: color 0.3s; }
 .log.active { color: #a78bfa; }
 </style>
