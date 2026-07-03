@@ -16,7 +16,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 2rem;
+        gap: 1.5rem;
         padding: 2rem;
       }
 
@@ -32,22 +32,25 @@
       .subtitle {
         font-size: 0.9rem;
         color: #888;
-        margin-top: -1.5rem;
+        margin-top: -1rem;
       }
 
       .controls {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: center;
-        max-width: 600px;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        width: 100%;
+        max-width: 680px;
       }
 
+      /* ── Generic group ──────────────────────────── */
       .group {
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
         align-items: center;
+        width: 100%;
       }
 
       .group-label {
@@ -74,23 +77,60 @@
         cursor: pointer;
         transition: all 0.15s ease;
       }
-
       button:hover {
         background: rgba(167, 139, 250, 0.2);
         border-color: rgba(167, 139, 250, 0.6);
         color: #fff;
       }
-
-      button:active {
-        transform: scale(0.96);
-      }
-
+      button:active { transform: scale(0.96); }
       button.active {
         background: rgba(167, 139, 250, 0.3);
         border-color: rgba(167, 139, 250, 0.9);
         color: #fff;
       }
 
+      /* ── Divider between sections ───────────────── */
+      .divider {
+        width: 100%;
+        border: none;
+        border-top: 1px solid rgba(167, 139, 250, 0.1);
+      }
+
+      /* ── Compact inline row (Look / Speech / Pos) ── */
+      .inline-groups {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+      }
+
+      .inline-groups .group {
+        width: auto;
+        align-items: center;
+      }
+
+      /* ── Two-column config panel ────────────────── */
+      .config-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        width: 100%;
+      }
+
+      .config-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: 1px solid rgba(167, 139, 250, 0.15);
+        border-radius: 10px;
+        background: rgba(167, 139, 250, 0.04);
+      }
+
+      .config-box .group-label { align-self: center; }
+
+      /* ── Slider rows ────────────────────────────── */
       .slider-row {
         display: flex;
         align-items: center;
@@ -99,24 +139,31 @@
         color: #aaa;
         width: 100%;
       }
-
-      .slider-row label { min-width: 4.5rem; text-align: right; color: #888; }
+      .slider-row label { min-width: 4rem; text-align: right; color: #888; }
       .slider-row input[type="range"] { flex: 1; accent-color: #a78bfa; cursor: pointer; }
       .slider-row .val { min-width: 2.5rem; font-family: monospace; color: #c4b5fd; }
 
-      .text-input {
-        flex: 1;
-        font-size: 0.68rem;
-        font-family: monospace;
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(167,139,250,0.3);
-        color: #c4b5fd;
-        border-radius: 4px;
-        padding: 0.2rem 0.4rem;
-        outline: none;
+      /* ── Color pickers ──────────────────────────── */
+      .color-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: #888;
       }
-      .text-input:focus { border-color: rgba(167,139,250,0.7); }
+      .color-row label { font-size: 0.72rem; color: #888; }
+      input[type="color"] {
+        width: 2.2rem;
+        height: 1.5rem;
+        cursor: pointer;
+        border: 1px solid rgba(167,139,250,0.3);
+        border-radius: 4px;
+        background: none;
+        padding: 1px;
+      }
 
+      /* ── Log ────────────────────────────────────── */
       #log {
         font-size: 0.75rem;
         color: #555;
@@ -124,10 +171,7 @@
         height: 1.2rem;
         transition: color 0.3s;
       }
-
-      #log.active {
-        color: #a78bfa;
-      }
+      #log.active { color: #a78bfa; }
     </style>
   </head>
   <body>
@@ -135,6 +179,8 @@
     <p class="subtitle">SDK Demo — lightweight animated avatar</p>
 
     <div class="controls">
+
+      <!-- Expressions -->
       <div class="group">
         <span class="group-label">Expressions</span>
         <div class="btn-row">
@@ -150,6 +196,9 @@
         </div>
       </div>
 
+      <hr class="divider">
+
+      <!-- Gestures -->
       <div class="group">
         <span class="group-label">Gestures</span>
         <div class="btn-row">
@@ -165,6 +214,9 @@
         </div>
       </div>
 
+      <hr class="divider">
+
+      <!-- States -->
       <div class="group">
         <span class="group-label">States</span>
         <div class="btn-row">
@@ -180,83 +232,91 @@
         </div>
       </div>
 
-      <div class="group">
-        <span class="group-label">Look</span>
-        <div class="btn-row">
-          <button data-action="lookAtMouse">👁️ follow mouse</button>
-          <button data-action="lookForward">⬛ look forward</button>
-          <button data-action="randomLook">🔀 random look</button>
+      <hr class="divider">
+
+      <!-- Look · Speech · Position (inline) -->
+      <div class="inline-groups">
+        <div class="group">
+          <span class="group-label">Look</span>
+          <div class="btn-row">
+            <button data-action="lookAtMouse">👁️ follow mouse</button>
+            <button data-action="lookForward">⬛ look forward</button>
+            <button data-action="randomLook">🔀 random look</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">Speech</span>
+          <div class="btn-row">
+            <button data-action="talk">🗣️ talk</button>
+            <button data-action="stopTalking">🔇 stop</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">Position</span>
+          <div class="btn-row">
+            <button data-action="pos-bottom-right">↘ bottom-right</button>
+            <button data-action="pos-bottom-left">↙ bottom-left</button>
+            <button data-action="pos-top-right">↗ top-right</button>
+            <button data-action="pos-top-left">↖ top-left</button>
+          </div>
         </div>
       </div>
 
-      <div class="group">
-        <span class="group-label">Speech</span>
-        <div class="btn-row">
-          <button data-action="talk">🗣️ talk</button>
-          <button data-action="stopTalking">🔇 stop</button>
-        </div>
-      </div>
+      <hr class="divider">
 
-      <div class="group">
-        <span class="group-label">Position</span>
-        <div class="btn-row">
-          <button data-action="pos-bottom-right">↘ bottom-right</button>
-          <button data-action="pos-bottom-left">↙ bottom-left</button>
-          <button data-action="pos-top-right">↗ top-right</button>
-          <button data-action="pos-top-left">↖ top-left</button>
-        </div>
-      </div>
+      <!-- Framing + Theme config panel -->
+      <div class="config-panel">
 
-      <div class="group">
-        <span class="group-label">Framing</span>
-        <div class="btn-row">
-          <button data-action="frame-full" data-framing="full">full</button>
-          <button data-action="frame-half" data-framing="half">half</button>
-          <button data-action="frame-bust" data-framing="bust">bust</button>
-          <button data-action="frame-face" data-framing="face">face</button>
+        <!-- Framing -->
+        <div class="config-box">
+          <span class="group-label">Framing — <span id="fc-mode-label">full</span></span>
+          <div class="btn-row">
+            <button data-action="frame-full" data-framing="full">full</button>
+            <button data-action="frame-half" data-framing="half">half</button>
+            <button data-action="frame-bust" data-framing="bust">bust</button>
+            <button data-action="frame-face" data-framing="face">face</button>
+          </div>
+          <div class="slider-row">
+            <label>from</label>
+            <input type="range" id="fc-from" min="0" max="1" step="0.01">
+            <span class="val" id="fc-from-val">0.00</span>
+          </div>
+          <div class="slider-row">
+            <label>lookBias</label>
+            <input type="range" id="fc-bias" min="0" max="1" step="0.01">
+            <span class="val" id="fc-bias-val">0.50</span>
+          </div>
         </div>
-      </div>
 
-      <div class="group">
-        <span class="group-label">Theme</span>
-        <div class="btn-row">
-          <button data-action="theme-light" data-theme="light">☀️ light</button>
-          <button data-action="theme-dark" data-theme="dark">🌙 dark</button>
-          <button data-action="theme-transparent" data-theme="transparent">◻️ transparent</button>
-        </div>
-      </div>
+        <!-- Theme -->
+        <div class="config-box">
+          <span class="group-label">Theme</span>
+          <div class="btn-row">
+            <button data-action="theme-light" data-theme="light">☀️ light</button>
+            <button data-action="theme-dark" data-theme="dark">🌙 dark</button>
+            <button data-action="theme-transparent" data-theme="transparent">◻️ transparent</button>
+          </div>
 
-      <div class="group" style="width:100%; max-width:340px;">
-        <span class="group-label">Theme Config — <span id="tc-mode-label">dark</span></span>
-        <div class="btn-row">
-          <button data-tc-mode="dark">🌙 dark</button>
-          <button data-tc-mode="light">☀️ light</button>
+          <span class="group-label" style="margin-top:0.25rem">Config — <span id="tc-mode-label">dark</span></span>
+          <div class="btn-row">
+            <button data-tc-mode="dark">🌙 dark</button>
+            <button data-tc-mode="light">☀️ light</button>
+          </div>
+          <div class="color-row">
+            <label>center</label>
+            <input type="color" id="tc-color1">
+            <label>edge</label>
+            <input type="color" id="tc-color2">
+          </div>
+          <div class="slider-row">
+            <label>shadow</label>
+            <input type="range" id="tc-shadow" min="0" max="1" step="0.05">
+            <span class="val" id="tc-shadow-val">0.50</span>
+          </div>
         </div>
-        <div class="slider-row">
-          <label>center</label>
-          <input type="color" id="tc-color1" style="width:2.5rem; height:1.6rem; cursor:pointer; border:none; background:none;">
-          <label>edge</label>
-          <input type="color" id="tc-color2" style="width:2.5rem; height:1.6rem; cursor:pointer; border:none; background:none;">
-        </div>
-        <div class="slider-row">
-          <label>shadow</label>
-          <input type="range" id="tc-shadow" min="0" max="1" step="0.05">
-          <span class="val" id="tc-shadow-val">0.50</span>
-        </div>
-      </div>
 
-      <div class="group" style="width:100%; max-width:340px;">
-        <span class="group-label">Framing Config — <span id="fc-mode-label">face</span></span>
-        <div class="slider-row">
-          <label>from</label>
-          <input type="range" id="fc-from" min="0" max="1" step="0.01" value="0.80">
-          <span class="val" id="fc-from-val">0.80</span>
-        </div>
-        <div class="slider-row">
-          <label>lookBias</label>
-          <input type="range" id="fc-bias" min="0" max="1" step="0.01" value="0.36">
-          <span class="val" id="fc-bias-val">0.36</span>
-        </div>
       </div>
     </div>
 
