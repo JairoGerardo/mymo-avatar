@@ -18,12 +18,12 @@ function setLog(msg: string, active = false): void {
   if (active) setTimeout(() => (log.className = ""), 2000)
 }
 
-const INITIAL_FRAMING = "bust"
+const INITIAL_FRAMING = "full"
 
 const FRAMING_CONFIG = {
   full: { from: 0.00, lookBias: 0.50 },
   half: { from: 0.48, lookBias: 0.60 },
-  bust: { from: 0.65, lookBias: 0.55 },
+  bust: { from: 0.60, lookBias: 0.70 },
   face: { from: 0.76, lookBias: 0.58 },
 }
 
@@ -31,7 +31,7 @@ const avatar = new Avatar({
   model: MODEL,
   framing: INITIAL_FRAMING,
   position: "bottom-right",
-  size: 600,
+  size: 200,
   theme: "dark",
   idle: true,
   idleInterval: 6000,
