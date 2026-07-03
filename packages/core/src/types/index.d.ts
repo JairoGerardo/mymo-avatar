@@ -2,7 +2,7 @@ export type AvatarPosition = "bottom-right" | "bottom-left" | "top-right" | "top
 export type AvatarFraming = "full" | "half" | "bust" | "face";
 export type AvatarTheme = "light" | "dark" | "transparent";
 export type Expression = "idle" | "smile" | "sad" | "happy" | "angry" | "surprised" | "thinking" | "confused" | "sleep";
-export type Gesture = "wave" | "nod" | "yes" | "no" | "shakeHead" | "point" | "clap" | "jump" | "dance";
+export type Gesture = "wave" | "nod" | "yes" | "no" | "shakeHead" | "clap" | "jump" | "dance";
 export type AvatarState = "loading" | "success" | "error" | "warning" | "typing" | "listening" | "processing" | "complete";
 export type AvatarEvent = "click" | "loaded" | "animationStart" | "animationEnd" | "speechStart" | "speechEnd" | "modelLoaded";
 export type AvatarEventCallback = (event: AvatarEvent, data?: unknown) => void;

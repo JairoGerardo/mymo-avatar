@@ -113,28 +113,6 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
     },
   },
 
-  point: {
-    duration: 2.0,
-    fn(t, vrm) {
-      const h        = vrm.humanoid
-      const rArm     = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
-      const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
-      const lArm     = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
-
-      let w: number
-      if      (t < 0.20)  w = smoothstep(t / 0.20)
-      else if (t < 0.75)  w = 1
-      else                w = smoothstep(1 - (t - 0.75) / 0.25)
-
-      if (rArm) {
-        rArm.rotation.z = lerp(REST_ARM_Z, -Math.PI / 6, w)
-        rArm.rotation.x = lerp(0, -0.25, w)
-      }
-      if (rForearm) { rForearm.rotation.z = lerp(REST_FORE_R, 0, w); rForearm.rotation.x = lerp(0, -0.15, w) }
-      if (lArm)     lArm.rotation.z = -REST_ARM_Z
-    },
-  },
-
   clap: {
     duration: 2.2,
     fn(t, vrm) {

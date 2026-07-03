@@ -15,7 +15,7 @@ export type Expression =
   | "confused"
   | "sleep"
 
-export type Gesture = "wave" | "nod" | "shakeHead" | "point" | "clap" | "jump" | "dance" | "yes" | "no"
+export type Gesture = "wave" | "nod" | "shakeHead" | "clap" | "jump" | "dance" | "yes" | "no"
 
 export type AvatarState =
   | "loading"

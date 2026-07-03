@@ -181,7 +181,6 @@ export default function AvatarDemo() {
           {btn("yes",       () => av().yes())}
           {btn("no",        () => av().no())}
           {btn("shakeHead", () => av().shakeHead())}
-          {btn("point",     () => av().point())}
           {btn("clap",      () => av().clap())}
           {btn("jump",      () => av().jump())}
           {btn("dance",     () => av().dance())}

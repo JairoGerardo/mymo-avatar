@@ -118,7 +118,6 @@ const cfg = computed(() => framingSlices[activeFraming.value])
           <button @click="act('yes',       () => av().yes())">yes</button>
           <button @click="act('no',        () => av().no())">no</button>
           <button @click="act('shakeHead', () => av().shakeHead())">shakeHead</button>
-          <button @click="act('point',     () => av().point())">point</button>
           <button @click="act('clap',      () => av().clap())">clap</button>
           <button @click="act('jump',      () => av().jump())">jump</button>
           <button @click="act('dance',     () => av().dance())">dance</button>

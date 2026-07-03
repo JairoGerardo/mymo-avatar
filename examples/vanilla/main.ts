@@ -110,7 +110,6 @@ const ACTIONS: Record<string, ActionFn> = {
   yes:       () => avatar.yes(),
   no:        () => avatar.no(),
   shakeHead: () => avatar.shakeHead(),
-  point:     () => avatar.point(),
   clap:      () => avatar.clap(),
   jump:      () => avatar.jump(),
   dance:     () => avatar.dance(),
