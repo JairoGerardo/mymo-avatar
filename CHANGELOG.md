@@ -16,7 +16,6 @@ Initial public release.
 - `@mymo/avatar@0.1.0` — core SDK
 - `@mymo/react@0.1.0` — React wrapper
 - `@mymo/vue@0.1.0` — Vue 3 wrapper
-- `@mymo/plugin-elevenlabs@0.1.0` — ElevenLabs TTS plugin
 
 ### Features
 
@@ -47,11 +46,6 @@ Initial public release.
 
 - `useAvatar(options)` composable — creates and destroys avatar on mount/unmount
 - `<AvatarWidget ref="..." ...props />` — component exposing `avatar` ref
-
-#### ElevenLabs Plugin (`@mymo/plugin-elevenlabs`)
-
-- `createElevenLabsPlugin({ apiKey, voiceId?, modelId? })` — returns `{ plugin, controller }`
-- `controller.speak(text, overrides?)` — fetches TTS audio and plays it with lip sync
 
 ---
 
