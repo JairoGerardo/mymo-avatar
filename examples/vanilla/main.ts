@@ -4,7 +4,8 @@ import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 
-const ROBOT_GLB = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb"
+// const MODEL = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb"
+const MODEL = "/Maya.vrm";
 
 
 const log = document.getElementById("log")!
@@ -18,10 +19,7 @@ function setLog(msg: string, active = false): void {
 }
 
 const avatar = new Avatar({
-  // model: ROBOT_GLB,
-  // model: "/girl.vrm",
-  // model: "/Mark.vrm",
-  model: "/Maya.vrm",
+  model: MODEL,
   framing: "full",
   position: "bottom-right",
   size: 600,
@@ -218,52 +216,52 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
 document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
 
 // ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
-async function inspectModel(url: string): Promise<void> {
-  const isVRM = url.endsWith(".vrm")
-  const loader = new GLTFLoader()
-  if (isVRM) loader.register((parser) => new VRMLoaderPlugin(parser))
-  const gltf = await loader.loadAsync(url)
+// async function inspectModel(url: string): Promise<void> {
+//   const isVRM = url.endsWith(".vrm")
+//   const loader = new GLTFLoader()
+//   if (isVRM) loader.register((parser) => new VRMLoaderPlugin(parser))
+//   const gltf = await loader.loadAsync(url)
 
-  const clips = gltf.animations.map((c) => c.name)
-  const bones: string[] = []
-  const morphTargets: Record<string, string[]> = {}
-  const scene = isVRM ? (gltf.userData["vrm"] as VRM).scene : gltf.scene
+//   const clips = gltf.animations.map((c) => c.name)
+//   const bones: string[] = []
+//   const morphTargets: Record<string, string[]> = {}
+//   const scene = isVRM ? (gltf.userData["vrm"] as VRM).scene : gltf.scene
 
-  scene.traverse((obj) => {
-    if (obj instanceof THREE.Bone) bones.push(obj.name)
-    if (
-      (obj instanceof THREE.Mesh || obj instanceof THREE.SkinnedMesh) &&
-      obj.morphTargetDictionary
-    ) {
-      morphTargets[obj.name] = Object.keys(obj.morphTargetDictionary)
-    }
-  })
+//   scene.traverse((obj) => {
+//     if (obj instanceof THREE.Bone) bones.push(obj.name)
+//     if (
+//       (obj instanceof THREE.Mesh || obj instanceof THREE.SkinnedMesh) &&
+//       obj.morphTargetDictionary
+//     ) {
+//       morphTargets[obj.name] = Object.keys(obj.morphTargetDictionary)
+//     }
+//   })
 
-  let headBoneResult = "NOT FOUND"
-  if (isVRM) {
-    const vrm = gltf.userData["vrm"] as VRM
-    const headNode = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head)
-    headBoneResult = headNode ? `✓ VRM humanoid "${headNode.name}"` : "NOT FOUND"
-    const expressions = vrm.expressionManager
-      ? Object.keys(vrm.expressionManager.expressionMap)
-      : []
-    console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
-    console.log("Type: VRM")
-    console.log("Animation clips:", clips.length ? clips : "NONE")
-    console.log("VRM expressions:", expressions.length ? expressions : "NONE")
-    console.log("Raw morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
-    console.log("Head bone:", headBoneResult)
-    console.groupEnd()
-  } else {
-    const headBone = bones.find((b) => /^(head|mixamorigHead|Bip01_Head|HeadBone|bip_head)/i.test(b))
-    headBoneResult = headBone ?? "NOT FOUND"
-    console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
-    console.log("Type: GLB")
-    console.log("Animation clips:", clips.length ? clips : "NONE")
-    console.log("Bones:", bones.length ? bones : "NONE")
-    console.log("Morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
-    console.log("Head bone:", headBoneResult)
-    console.groupEnd()
-  }
-}
-inspectModel("/woody_toy_story_v2_kh3.glb").catch(console.error)
+//   let headBoneResult = "NOT FOUND"
+//   if (isVRM) {
+//     const vrm = gltf.userData["vrm"] as VRM
+//     const headNode = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head)
+//     headBoneResult = headNode ? `✓ VRM humanoid "${headNode.name}"` : "NOT FOUND"
+//     const expressions = vrm.expressionManager
+//       ? Object.keys(vrm.expressionManager.expressionMap)
+//       : []
+//     console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
+//     console.log("Type: VRM")
+//     console.log("Animation clips:", clips.length ? clips : "NONE")
+//     console.log("VRM expressions:", expressions.length ? expressions : "NONE")
+//     console.log("Raw morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
+//     console.log("Head bone:", headBoneResult)
+//     console.groupEnd()
+//   } else {
+//     const headBone = bones.find((b) => /^(head|mixamorigHead|Bip01_Head|HeadBone|bip_head)/i.test(b))
+//     headBoneResult = headBone ?? "NOT FOUND"
+//     console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
+//     console.log("Type: GLB")
+//     console.log("Animation clips:", clips.length ? clips : "NONE")
+//     console.log("Bones:", bones.length ? bones : "NONE")
+//     console.log("Morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
+//     console.log("Head bone:", headBoneResult)
+//     console.groupEnd()
+//   }
+// }
+// inspectModel(MODEL).catch(console.error)
