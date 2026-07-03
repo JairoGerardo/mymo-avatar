@@ -12,6 +12,11 @@ export interface FramingModeConfig {
     lookBias?: number;
 }
 export type FramingSliceConfig = Partial<Record<AvatarFraming, FramingModeConfig>>;
+export interface ThemeModeConfig {
+    background?: string;
+    boxShadow?: string;
+}
+export type ThemeConfig = Partial<Record<"light" | "dark", ThemeModeConfig>>;
 export interface AvatarOptions {
     model?: string;
     position?: AvatarPosition;
@@ -29,6 +34,7 @@ export interface AvatarOptions {
     followMouse?: boolean;
     autoHide?: boolean;
     zIndex?: number;
+    themeConfig?: ThemeConfig;
 }
 export interface AvatarApi {
     on(event: AvatarEvent, callback: AvatarEventCallback): this;

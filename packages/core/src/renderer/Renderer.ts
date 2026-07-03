@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import type { AvatarOptions, AvatarPosition, AvatarFraming, FramingSliceConfig } from "../types/index.js"
+import type { AvatarOptions, AvatarPosition, AvatarFraming, FramingSliceConfig, ThemeConfig } from "../types/index.js"
 
 type TickCallback = (delta: number) => void
 
@@ -40,8 +40,10 @@ export class Renderer {
   private tickCallbacks: TickCallback[] = []
   private currentModel: THREE.Object3D | null = null
   private currentFraming: AvatarFraming = "full"
+  private currentTheme = "light"
   private modelFraming: Record<AvatarFraming, FramingConfig> | null = null
   private userSliceConfig: FramingSliceConfig = {}
+  private userThemeConfig: ThemeConfig = {}
 
   constructor() {
     this.scene = new THREE.Scene()
@@ -58,6 +60,7 @@ export class Renderer {
     this.webgl.toneMapping = THREE.ACESFilmicToneMapping
 
     this._setupLights()
+    if (options.themeConfig) this.userThemeConfig = options.themeConfig
     this._createContainer(options)
     this.currentFraming = options.framing
     if (options.framingConfig) this.userSliceConfig = options.framingConfig
@@ -87,6 +90,7 @@ export class Renderer {
     s.userSelect = "none"
     s.boxSizing = "border-box"
 
+    this.currentTheme = options.theme
     this._applyTheme(options.theme, options.size)
     this._applyPosition(options.position)
 
@@ -97,17 +101,23 @@ export class Renderer {
   }
 
   setTheme(theme: string): void {
+    this.currentTheme = theme
     this._applyTheme(theme, 0)
+  }
+
+  setThemeConfig(config: ThemeConfig): void {
+    this.userThemeConfig = { ...this.userThemeConfig, ...config }
+    this._applyTheme(this.currentTheme, 0)
   }
 
   private _applyTheme(theme: string, _size: number): void {
     const s = this.container.style
     if (theme === "dark") {
-      s.background = "radial-gradient(circle at 40% 35%, #2a2a4a 0%, #0d0d1a 100%)"
-      s.boxShadow = `0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08)`
+      s.background = this.userThemeConfig.dark?.background ?? "radial-gradient(circle at 40% 35%, #2a2a4a 0%, #0d0d1a 100%)"
+      s.boxShadow  = this.userThemeConfig.dark?.boxShadow  ?? `0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08)`
     } else if (theme === "light") {
-      s.background = "radial-gradient(circle at 40% 35%, #f8f8ff 0%, #e0e0f0 100%)"
-      s.boxShadow = `0 8px 32px rgba(0,0,0,0.15), 0 0 0 2px rgba(0,0,0,0.06)`
+      s.background = this.userThemeConfig.light?.background ?? "radial-gradient(circle at 40% 35%, #f8f8ff 0%, #e0e0f0 100%)"
+      s.boxShadow  = this.userThemeConfig.light?.boxShadow  ?? `0 8px 32px rgba(0,0,0,0.15), 0 0 0 2px rgba(0,0,0,0.06)`
     } else {
       s.background = "transparent"
       s.boxShadow = "none"

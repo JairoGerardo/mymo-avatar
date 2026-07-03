@@ -13,6 +13,7 @@ import type {
   AvatarPosition,
   AvatarFraming,
   AvatarTheme,
+  ThemeConfig,
   Expression,
   Gesture,
   AvatarState,
@@ -44,6 +45,7 @@ const DEFAULTS: Required<AvatarOptions> = {
   autoHide: false,
   zIndex: 99999,
   framingConfig: {},
+  themeConfig: {},
 }
 
 export class Avatar {
@@ -167,6 +169,11 @@ export class Avatar {
 
   setTheme(theme: AvatarTheme): this {
     this.renderer.setTheme(theme)
+    return this
+  }
+
+  setThemeConfig(config: ThemeConfig): this {
+    this.renderer.setThemeConfig(config)
     return this
   }
 

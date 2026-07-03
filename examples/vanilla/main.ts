@@ -29,6 +29,11 @@ const FRAMING_CONFIG = {
 
 const INITIAL_THEME = "dark"
 
+const THEME_CONFIG = {
+  dark:  { background: "radial-gradient(circle at 40% 35%, #2a2a4a 0%, #0d0d1a 100%)", boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.08)" },
+  light: { background: "radial-gradient(circle at 40% 35%, #f8f8ff 0%, #e0e0f0 100%)", boxShadow: "0 8px 32px rgba(0,0,0,0.15), 0 0 0 2px rgba(0,0,0,0.06)" },
+}
+
 const avatar = new Avatar({
   model: MODEL,
   framing: INITIAL_FRAMING,
@@ -43,6 +48,7 @@ const avatar = new Avatar({
   draggable: true,
   zIndex: 9999,
   framingConfig: FRAMING_CONFIG,
+  themeConfig: THEME_CONFIG,
 })
 
 avatar
@@ -154,6 +160,76 @@ const ACTIONS: Record<string, ActionFn> = {
   "theme-dark":        () => avatar.setTheme("dark"),
   "theme-transparent": () => avatar.setTheme("transparent"),
 }
+
+// ── Theme config color pickers ────────────────────────────────────────────────
+
+const themeSlices = {
+  dark:  { color1: "#2a2a4a", color2: "#0d0d1a", shadowOpacity: 0.5 },
+  light: { color1: "#f8f8ff", color2: "#e0e0f0", shadowOpacity: 0.15 },
+}
+
+let currentThemeMode: "dark" | "light" = "dark"
+
+const tcModeLabel   = document.getElementById("tc-mode-label")!
+const tcColor1      = document.getElementById("tc-color1")  as HTMLInputElement
+const tcColor2      = document.getElementById("tc-color2")  as HTMLInputElement
+const tcShadow      = document.getElementById("tc-shadow")  as HTMLInputElement
+const tcShadowVal   = document.getElementById("tc-shadow-val")!
+
+function buildThemeConfig(mode: "dark" | "light") {
+  const { color1, color2, shadowOpacity } = themeSlices[mode]
+  const ringOpacity = mode === "dark" ? 0.08 : 0.06
+  const ringColor   = mode === "dark" ? "255,255,255" : "0,0,0"
+  return {
+    background: `radial-gradient(circle at 40% 35%, ${color1} 0%, ${color2} 100%)`,
+    boxShadow:  `0 8px 32px rgba(0,0,0,${shadowOpacity}), 0 0 0 2px rgba(${ringColor},${ringOpacity})`,
+  }
+}
+
+function syncThemePickers(mode: "dark" | "light"): void {
+  const s = themeSlices[mode]
+  tcColor1.value          = s.color1
+  tcColor2.value          = s.color2
+  tcShadow.value          = String(s.shadowOpacity)
+  tcShadowVal.textContent = s.shadowOpacity.toFixed(2)
+  tcModeLabel.textContent = mode
+}
+
+function applyThemeConfig(mode: "dark" | "light"): void {
+  avatar.setThemeConfig({ [mode]: buildThemeConfig(mode) })
+}
+
+tcColor1.addEventListener("input", () => {
+  themeSlices[currentThemeMode].color1 = tcColor1.value
+  applyThemeConfig(currentThemeMode)
+  setLog(`themeConfig.${currentThemeMode}.center = ${tcColor1.value}`, true)
+})
+
+tcColor2.addEventListener("input", () => {
+  themeSlices[currentThemeMode].color2 = tcColor2.value
+  applyThemeConfig(currentThemeMode)
+  setLog(`themeConfig.${currentThemeMode}.edge = ${tcColor2.value}`, true)
+})
+
+tcShadow.addEventListener("input", () => {
+  const v = parseFloat(tcShadow.value)
+  tcShadowVal.textContent = v.toFixed(2)
+  themeSlices[currentThemeMode].shadowOpacity = v
+  applyThemeConfig(currentThemeMode)
+  setLog(`themeConfig.${currentThemeMode}.shadow = ${v.toFixed(2)}`, true)
+})
+
+document.querySelectorAll<HTMLButtonElement>("button[data-tc-mode]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll<HTMLButtonElement>("button[data-tc-mode]").forEach(b => b.classList.remove("active"))
+    btn.classList.add("active")
+    currentThemeMode = btn.dataset["tcMode"] as "dark" | "light"
+    syncThemePickers(currentThemeMode)
+  })
+})
+
+syncThemePickers(currentThemeMode)
+document.querySelector<HTMLButtonElement>(`button[data-tc-mode="${currentThemeMode}"]`)?.classList.add("active")
 
 // ── Framing buttons + config sliders ─────────────────────────────────────────
 

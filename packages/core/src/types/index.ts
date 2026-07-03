@@ -51,6 +51,13 @@ export interface FramingModeConfig {
 
 export type FramingSliceConfig = Partial<Record<AvatarFraming, FramingModeConfig>>
 
+export interface ThemeModeConfig {
+  background?: string
+  boxShadow?: string
+}
+
+export type ThemeConfig = Partial<Record<"light" | "dark", ThemeModeConfig>>
+
 export interface AvatarOptions {
   model?: string
   position?: AvatarPosition
@@ -69,6 +76,8 @@ export interface AvatarOptions {
   zIndex?: number
   /** Override per-mode framing slices to fine-tune for your specific model */
   framingConfig?: FramingSliceConfig
+  /** Override background/shadow for light and dark themes */
+  themeConfig?: ThemeConfig
 }
 
 export interface AvatarApi {
