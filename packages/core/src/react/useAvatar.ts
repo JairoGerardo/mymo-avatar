@@ -11,7 +11,6 @@ export function useAvatar(options: AvatarOptions): React.RefObject<Avatar | null
       ref.current?.destroy()
       ref.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return ref
