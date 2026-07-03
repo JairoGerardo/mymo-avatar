@@ -112,6 +112,7 @@ const S: Record<string, React.CSSProperties> = {
 
 const FRAMINGS: AvatarFraming[] = ["full", "half", "bust", "face"]
 const THEMES: AvatarTheme[]     = ["light", "dark", "transparent"]
+const THEME_LABELS: Record<AvatarTheme, string> = { light: "☀️ light", dark: "🌙 dark", transparent: "◻️ transparent" }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -220,8 +221,8 @@ export function App() {
     )
   }
 
-  function btn(label: string, fn: () => void) {
-    return <button key={label} style={S.btn} onClick={() => act(label, fn)}>{label}</button>
+  function btn(label: string, fn: () => void, display?: string) {
+    return <button key={label} style={S.btn} onClick={() => act(label, fn)}>{display ?? label}</button>
   }
 
   return (
@@ -235,15 +236,15 @@ export function App() {
         <div style={{ ...S.group }}>
           <span style={S.groupLabel}>Expressions</span>
           <div style={S.btnRow}>
-            {btn("smile",     () => av().smile())}
-            {btn("happy",     () => av().happy())}
-            {btn("sad",       () => av().sad())}
-            {btn("angry",     () => av().angry())}
-            {btn("surprised", () => av().surprised())}
-            {btn("thinking",  () => av().thinking())}
-            {btn("confused",  () => av().confused())}
-            {btn("sleep",     () => av().sleep())}
-            {btn("idle",      () => av().idle())}
+            {btn("smile",     () => av().smile(),     "😊 smile")}
+            {btn("happy",     () => av().happy(),     "😄 happy")}
+            {btn("sad",       () => av().sad(),       "😢 sad")}
+            {btn("angry",     () => av().angry(),     "😠 angry")}
+            {btn("surprised", () => av().surprised(), "😲 surprised")}
+            {btn("thinking",  () => av().thinking(),  "🤔 thinking")}
+            {btn("confused",  () => av().confused(),  "😕 confused")}
+            {btn("sleep",     () => av().sleep(),     "😴 sleep")}
+            {btn("idle",      () => av().idle(),      "😐 idle")}
           </div>
         </div>
 
@@ -253,15 +254,15 @@ export function App() {
         <div style={S.group}>
           <span style={S.groupLabel}>Gestures</span>
           <div style={S.btnRow}>
-            {btn("wave",      () => av().wave())}
-            {btn("nod",       () => av().nod())}
-            {btn("yes",       () => av().yes())}
-            {btn("no",        () => av().no())}
-            {btn("shakeHead", () => av().shakeHead())}
-            {btn("clap",      () => av().clap())}
-            {btn("jump",      () => av().jump())}
-            {btn("dance",     () => av().dance())}
-            {btn("thumbsUp",  () => av().thumbsUp())}
+            {btn("wave",      () => av().wave(),      "👋 wave")}
+            {btn("nod",       () => av().nod(),       "↕️ nod")}
+            {btn("yes",       () => av().yes(),       "✅ yes")}
+            {btn("no",        () => av().no(),        "❌ no")}
+            {btn("shakeHead", () => av().shakeHead(), "🙅 shakeHead")}
+            {btn("clap",      () => av().clap(),      "👏 clap")}
+            {btn("jump",      () => av().jump(),      "⬆️ jump")}
+            {btn("dance",     () => av().dance(),     "💃 dance")}
+            {btn("thumbsUp",  () => av().thumbsUp(),  "👍 thumbsUp")}
           </div>
         </div>
 
@@ -271,15 +272,15 @@ export function App() {
         <div style={S.group}>
           <span style={S.groupLabel}>States</span>
           <div style={S.btnRow}>
-            {btn("loading",    () => av().loading())}
-            {btn("success",    () => av().success())}
-            {btn("error",      () => av().error())}
-            {btn("warning",    () => av().warning())}
-            {btn("listening",  () => av().listening())}
-            {btn("typing",     () => av().typing())}
-            {btn("processing", () => av().processing())}
-            {btn("complete",   () => av().complete())}
-            {btn("clearState", () => av().clearState())}
+            {btn("loading",    () => av().loading(),    "⏳ loading")}
+            {btn("success",    () => av().success(),    "✅ success")}
+            {btn("error",      () => av().error(),      "❌ error")}
+            {btn("warning",    () => av().warning(),    "⚠️ warning")}
+            {btn("listening",  () => av().listening(),  "👂 listening")}
+            {btn("typing",     () => av().typing(),     "⌨️ typing")}
+            {btn("processing", () => av().processing(), "⚙️ processing")}
+            {btn("complete",   () => av().complete(),   "🏁 complete")}
+            {btn("clearState", () => av().clearState(), "✖ clear")}
           </div>
         </div>
 
@@ -288,19 +289,19 @@ export function App() {
         {/* Look · Speech · Position */}
         <div style={S.inlineRow}>
           {group("Look", <>
-            {btn("lookAtMouse", () => av().lookAtMouse())}
-            {btn("lookForward", () => av().lookForward())}
-            {btn("randomLook",  () => av().randomLook())}
+            {btn("lookAtMouse", () => av().lookAtMouse(), "👁️ follow mouse")}
+            {btn("lookForward", () => av().lookForward(), "⬛ look forward")}
+            {btn("randomLook",  () => av().randomLook(),  "🔀 random look")}
           </>)}
           {group("Speech", <>
-            {btn("talk",        () => av().talk(createSpeechTone(3)).catch(console.error))}
-            {btn("stopTalking", () => av().stopTalking())}
+            {btn("talk",        () => av().talk(createSpeechTone(3)).catch(console.error), "🗣️ talk")}
+            {btn("stopTalking", () => av().stopTalking(), "🔇 stop")}
           </>)}
           {group("Position", <>
-            {btn("bottom-right", () => av().position("bottom-right" as AvatarPosition))}
-            {btn("bottom-left",  () => av().position("bottom-left"  as AvatarPosition))}
-            {btn("top-right",    () => av().position("top-right"    as AvatarPosition))}
-            {btn("top-left",     () => av().position("top-left"     as AvatarPosition))}
+            {btn("bottom-right", () => av().position("bottom-right" as AvatarPosition), "↘ bottom-right")}
+            {btn("bottom-left",  () => av().position("bottom-left"  as AvatarPosition), "↙ bottom-left")}
+            {btn("top-right",    () => av().position("top-right"    as AvatarPosition), "↗ top-right")}
+            {btn("top-left",     () => av().position("top-left"     as AvatarPosition), "↖ top-left")}
           </>)}
         </div>
 
@@ -352,7 +353,7 @@ export function App() {
             <span style={{ ...S.groupLabel, alignSelf: "center" }}>Theme</span>
             <div style={S.btnRow}>
               {THEMES.map(t => (
-                <button key={t} style={activeTheme === t ? S.btnActive : S.btn} onClick={() => selectTheme(t)}>{t}</button>
+                <button key={t} style={activeTheme === t ? S.btnActive : S.btn} onClick={() => selectTheme(t)}>{THEME_LABELS[t]}</button>
               ))}
             </div>
             {activeTheme !== "transparent" && <>

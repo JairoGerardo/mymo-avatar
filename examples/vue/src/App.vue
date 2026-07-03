@@ -112,6 +112,7 @@ function act(label: string, fn: () => void) {
 
 const FRAMINGS: AvatarFraming[] = ["full", "half", "bust", "face"]
 const THEMES: AvatarTheme[]     = ["light", "dark", "transparent"]
+const THEME_LABELS: Record<AvatarTheme, string> = { light: "☀️ light", dark: "🌙 dark", transparent: "◻️ transparent" }
 
 function selectFraming(mode: AvatarFraming) {
   activeFraming.value = mode
@@ -166,15 +167,15 @@ function updateSize(px: number) {
       <div class="group">
         <span class="group-label">Expressions</span>
         <div class="btn-row">
-          <button @click="act('smile',     () => av().smile())">smile</button>
-          <button @click="act('happy',     () => av().happy())">happy</button>
-          <button @click="act('sad',       () => av().sad())">sad</button>
-          <button @click="act('angry',     () => av().angry())">angry</button>
-          <button @click="act('surprised', () => av().surprised())">surprised</button>
-          <button @click="act('thinking',  () => av().thinking())">thinking</button>
-          <button @click="act('confused',  () => av().confused())">confused</button>
-          <button @click="act('sleep',     () => av().sleep())">sleep</button>
-          <button @click="act('idle',      () => av().idle())">idle</button>
+          <button @click="act('smile',     () => av().smile())">😊 smile</button>
+          <button @click="act('happy',     () => av().happy())">😄 happy</button>
+          <button @click="act('sad',       () => av().sad())">😢 sad</button>
+          <button @click="act('angry',     () => av().angry())">😠 angry</button>
+          <button @click="act('surprised', () => av().surprised())">😲 surprised</button>
+          <button @click="act('thinking',  () => av().thinking())">🤔 thinking</button>
+          <button @click="act('confused',  () => av().confused())">😕 confused</button>
+          <button @click="act('sleep',     () => av().sleep())">😴 sleep</button>
+          <button @click="act('idle',      () => av().idle())">😐 idle</button>
         </div>
       </div>
 
@@ -184,15 +185,15 @@ function updateSize(px: number) {
       <div class="group">
         <span class="group-label">Gestures</span>
         <div class="btn-row">
-          <button @click="act('wave',      () => av().wave())">wave</button>
-          <button @click="act('nod',       () => av().nod())">nod</button>
-          <button @click="act('yes',       () => av().yes())">yes</button>
-          <button @click="act('no',        () => av().no())">no</button>
-          <button @click="act('shakeHead', () => av().shakeHead())">shakeHead</button>
-          <button @click="act('clap',      () => av().clap())">clap</button>
-          <button @click="act('jump',      () => av().jump())">jump</button>
-          <button @click="act('dance',     () => av().dance())">dance</button>
-          <button @click="act('thumbsUp',  () => av().thumbsUp())">thumbsUp</button>
+          <button @click="act('wave',      () => av().wave())">👋 wave</button>
+          <button @click="act('nod',       () => av().nod())">↕️ nod</button>
+          <button @click="act('yes',       () => av().yes())">✅ yes</button>
+          <button @click="act('no',        () => av().no())">❌ no</button>
+          <button @click="act('shakeHead', () => av().shakeHead())">🙅 shakeHead</button>
+          <button @click="act('clap',      () => av().clap())">👏 clap</button>
+          <button @click="act('jump',      () => av().jump())">⬆️ jump</button>
+          <button @click="act('dance',     () => av().dance())">💃 dance</button>
+          <button @click="act('thumbsUp',  () => av().thumbsUp())">👍 thumbsUp</button>
         </div>
       </div>
 
@@ -202,15 +203,15 @@ function updateSize(px: number) {
       <div class="group">
         <span class="group-label">States</span>
         <div class="btn-row">
-          <button @click="act('loading',    () => av().loading())">loading</button>
-          <button @click="act('success',    () => av().success())">success</button>
-          <button @click="act('error',      () => av().error())">error</button>
-          <button @click="act('warning',    () => av().warning())">warning</button>
-          <button @click="act('listening',  () => av().listening())">listening</button>
-          <button @click="act('typing',     () => av().typing())">typing</button>
-          <button @click="act('processing', () => av().processing())">processing</button>
-          <button @click="act('complete',   () => av().complete())">complete</button>
-          <button @click="act('clearState', () => av().clearState())">clearState</button>
+          <button @click="act('loading',    () => av().loading())">⏳ loading</button>
+          <button @click="act('success',    () => av().success())">✅ success</button>
+          <button @click="act('error',      () => av().error())">❌ error</button>
+          <button @click="act('warning',    () => av().warning())">⚠️ warning</button>
+          <button @click="act('listening',  () => av().listening())">👂 listening</button>
+          <button @click="act('typing',     () => av().typing())">⌨️ typing</button>
+          <button @click="act('processing', () => av().processing())">⚙️ processing</button>
+          <button @click="act('complete',   () => av().complete())">🏁 complete</button>
+          <button @click="act('clearState', () => av().clearState())">✖ clear</button>
         </div>
       </div>
 
@@ -221,25 +222,25 @@ function updateSize(px: number) {
         <div class="group inline-group">
           <span class="group-label">Look</span>
           <div class="btn-row">
-            <button @click="act('lookAtMouse', () => av().lookAtMouse())">lookAtMouse</button>
-            <button @click="act('lookForward', () => av().lookForward())">lookForward</button>
-            <button @click="act('randomLook',  () => av().randomLook())">randomLook</button>
+            <button @click="act('lookAtMouse', () => av().lookAtMouse())">👁️ follow mouse</button>
+            <button @click="act('lookForward', () => av().lookForward())">⬛ look forward</button>
+            <button @click="act('randomLook',  () => av().randomLook())">🔀 random look</button>
           </div>
         </div>
         <div class="group inline-group">
           <span class="group-label">Speech</span>
           <div class="btn-row">
-            <button @click="act('talk',        () => av().talk(createSpeechTone(3)).catch(console.error))">talk</button>
-            <button @click="act('stopTalking', () => av().stopTalking())">stopTalking</button>
+            <button @click="act('talk',        () => av().talk(createSpeechTone(3)).catch(console.error))">🗣️ talk</button>
+            <button @click="act('stopTalking', () => av().stopTalking())">🔇 stop</button>
           </div>
         </div>
         <div class="group inline-group">
           <span class="group-label">Position</span>
           <div class="btn-row">
-            <button @click="act('pos-bottom-right', () => av().position('bottom-right' as AvatarPosition))">bottom-right</button>
-            <button @click="act('pos-bottom-left',  () => av().position('bottom-left'  as AvatarPosition))">bottom-left</button>
-            <button @click="act('pos-top-right',    () => av().position('top-right'    as AvatarPosition))">top-right</button>
-            <button @click="act('pos-top-left',     () => av().position('top-left'     as AvatarPosition))">top-left</button>
+            <button @click="act('pos-bottom-right', () => av().position('bottom-right' as AvatarPosition))">↘ bottom-right</button>
+            <button @click="act('pos-bottom-left',  () => av().position('bottom-left'  as AvatarPosition))">↙ bottom-left</button>
+            <button @click="act('pos-top-right',    () => av().position('top-right'    as AvatarPosition))">↗ top-right</button>
+            <button @click="act('pos-top-left',     () => av().position('top-left'     as AvatarPosition))">↖ top-left</button>
           </div>
         </div>
       </div>
@@ -294,7 +295,7 @@ function updateSize(px: number) {
               v-for="t in THEMES" :key="t"
               :class="{ active: activeTheme === t }"
               @click="selectTheme(t)"
-            >{{ t }}</button>
+            >{{ THEME_LABELS[t] }}</button>
           </div>
           <template v-if="activeTheme !== 'transparent'">
             <div class="color-row">
