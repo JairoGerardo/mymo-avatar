@@ -180,6 +180,7 @@ export default function AvatarDemo() {
 
   function selectTheme(theme: AvatarTheme) {
     setActiveTheme(theme)
+    if (theme !== "transparent") setThemeMode(theme)
     av().setTheme(theme)
     flash(`avatar.setTheme("${theme}")`)
   }
@@ -335,27 +336,23 @@ export default function AvatarDemo() {
                 <button key={t} style={activeTheme === t ? S.btnActive : S.btn} onClick={() => selectTheme(t)}>{t}</button>
               ))}
             </div>
-            <span style={{ ...S.groupLabel, alignSelf: "center", marginTop: "0.25rem" }}>Config — {themeMode}</span>
-            <div style={S.btnRow}>
-              {(["dark", "light"] as ThemeMode[]).map(m => (
-                <button key={m} style={themeMode === m ? S.btnActive : S.btn} onClick={() => setThemeMode(m)}>{m}</button>
-              ))}
-            </div>
-            <div style={S.colorRow}>
-              <label>center</label>
-              <input type="color" value={themeCfg.color1} style={S.colorInput}
-                onChange={e => updateThemeSlice(themeMode, "color1", e.target.value)} />
-              <label>edge</label>
-              <input type="color" value={themeCfg.color2} style={S.colorInput}
-                onChange={e => updateThemeSlice(themeMode, "color2", e.target.value)} />
-            </div>
-            <div style={S.sliderRow}>
-              <label style={S.sliderLabel}>shadow</label>
-              <input type="range" min={0} max={1} step={0.05} value={themeCfg.shadowOpacity}
-                style={{ flex: 1, accentColor: "#a78bfa" }}
-                onChange={e => updateThemeSlice(themeMode, "shadowOpacity", parseFloat(e.target.value))} />
-              <span style={S.sliderVal}>{themeCfg.shadowOpacity.toFixed(2)}</span>
-            </div>
+            {activeTheme !== "transparent" && <>
+              <div style={S.colorRow}>
+                <label>center</label>
+                <input type="color" value={themeCfg.color1} style={S.colorInput}
+                  onChange={e => updateThemeSlice(themeMode, "color1", e.target.value)} />
+                <label>edge</label>
+                <input type="color" value={themeCfg.color2} style={S.colorInput}
+                  onChange={e => updateThemeSlice(themeMode, "color2", e.target.value)} />
+              </div>
+              <div style={S.sliderRow}>
+                <label style={S.sliderLabel}>shadow</label>
+                <input type="range" min={0} max={1} step={0.05} value={themeCfg.shadowOpacity}
+                  style={{ flex: 1, accentColor: "#a78bfa" }}
+                  onChange={e => updateThemeSlice(themeMode, "shadowOpacity", parseFloat(e.target.value))} />
+                <span style={S.sliderVal}>{themeCfg.shadowOpacity.toFixed(2)}</span>
+              </div>
+            </>}
           </div>
 
         </div>

@@ -131,6 +131,7 @@ const cfg = computed(() => framingSlices[activeFraming.value])
 
 function selectTheme(theme: AvatarTheme) {
   activeTheme.value = theme
+  if (theme !== "transparent") themeMode.value = theme
   av().setTheme(theme)
   flash(`avatar.setTheme("${theme}")`)
 }
@@ -272,25 +273,22 @@ const themeCfg = computed(() => themeSlices[themeMode.value])
               @click="selectTheme(t)"
             >{{ t }}</button>
           </div>
-          <span class="group-label center" style="margin-top: 0.25rem">Config — {{ themeMode }}</span>
-          <div class="btn-row">
-            <button :class="{ active: themeMode === 'dark' }"  @click="themeMode = 'dark'">dark</button>
-            <button :class="{ active: themeMode === 'light' }" @click="themeMode = 'light'">light</button>
-          </div>
-          <div class="color-row">
-            <label>center</label>
-            <input type="color" :value="themeCfg.color1"
-              @input="updateThemeSlice(themeMode, 'color1', ($event.target as HTMLInputElement).value)" />
-            <label>edge</label>
-            <input type="color" :value="themeCfg.color2"
-              @input="updateThemeSlice(themeMode, 'color2', ($event.target as HTMLInputElement).value)" />
-          </div>
-          <div class="slider-row">
-            <label>shadow</label>
-            <input type="range" min="0" max="1" step="0.05" :value="themeCfg.shadowOpacity"
-              @input="updateThemeSlice(themeMode, 'shadowOpacity', parseFloat(($event.target as HTMLInputElement).value))" />
-            <span class="val">{{ themeCfg.shadowOpacity.toFixed(2) }}</span>
-          </div>
+          <template v-if="activeTheme !== 'transparent'">
+            <div class="color-row">
+              <label>center</label>
+              <input type="color" :value="themeCfg.color1"
+                @input="updateThemeSlice(themeMode, 'color1', ($event.target as HTMLInputElement).value)" />
+              <label>edge</label>
+              <input type="color" :value="themeCfg.color2"
+                @input="updateThemeSlice(themeMode, 'color2', ($event.target as HTMLInputElement).value)" />
+            </div>
+            <div class="slider-row">
+              <label>shadow</label>
+              <input type="range" min="0" max="1" step="0.05" :value="themeCfg.shadowOpacity"
+                @input="updateThemeSlice(themeMode, 'shadowOpacity', parseFloat(($event.target as HTMLInputElement).value))" />
+              <span class="val">{{ themeCfg.shadowOpacity.toFixed(2) }}</span>
+            </div>
+          </template>
         </div>
 
       </div>
