@@ -121,6 +121,7 @@ const cfg = computed(() => framingSlices[activeFraming.value])
           <button @click="act('clap',      () => av().clap())">clap</button>
           <button @click="act('jump',      () => av().jump())">jump</button>
           <button @click="act('dance',     () => av().dance())">dance</button>
+          <button @click="act('thumbsUp', () => av().thumbsUp())">thumbsUp</button>
         </div>
       </div>
 

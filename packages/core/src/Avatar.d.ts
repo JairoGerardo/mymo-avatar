@@ -39,10 +39,10 @@ export declare class Avatar {
     yes(): this;
     no(): this;
     shakeHead(): this;
-    point(): this;
     clap(): this;
     jump(): this;
     dance(): this;
+    thumbsUp(): this;
     private _gesture;
     lookAtMouse(): this;
     lookAt(x: number, y: number): this;

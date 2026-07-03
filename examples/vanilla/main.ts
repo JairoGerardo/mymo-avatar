@@ -113,6 +113,7 @@ const ACTIONS: Record<string, ActionFn> = {
   clap:      () => avatar.clap(),
   jump:      () => avatar.jump(),
   dance:     () => avatar.dance(),
+  thumbsUp:  () => avatar.thumbsUp(),
   // States
   loading:    () => avatar.loading(),
   success:    () => avatar.success(),

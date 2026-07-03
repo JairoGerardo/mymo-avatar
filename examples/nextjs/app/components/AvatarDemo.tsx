@@ -184,6 +184,7 @@ export default function AvatarDemo() {
           {btn("clap",      () => av().clap())}
           {btn("jump",      () => av().jump())}
           {btn("dance",     () => av().dance())}
+          {btn("thumbsUp", () => av().thumbsUp())}
         </>)}
 
         {group("States", <>

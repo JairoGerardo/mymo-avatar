@@ -186,12 +186,12 @@ export class Avatar {
   wave(): this { return this._gesture("wave") }
   nod(): this { return this._gesture("nod") }
   shakeHead(): this { return this._gesture("shakeHead") }
-  point(): this { return this._gesture("point") }
   clap(): this { return this._gesture("clap") }
   jump(): this { return this._gesture("jump") }
   dance(): this { return this._gesture("dance") }
   yes(): this { return this._gesture("yes") }
   no(): this { return this._gesture("no") }
+  thumbsUp(): this { return this._gesture("thumbsUp") }
 
   private _gesture(gesture: Gesture): this {
     this.events.emit("animationStart", { gesture })

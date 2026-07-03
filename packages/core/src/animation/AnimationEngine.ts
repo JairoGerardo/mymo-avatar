@@ -256,6 +256,64 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
     },
   },
 
+  thumbsUp: {
+    duration: 2.5,
+    fn(t, vrm) {
+      const h        = vrm.humanoid
+      const rArm     = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
+      const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
+      const rHand    = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
+      const lArm     = h.getNormalizedBoneNode(VRMHumanBoneName.LeftUpperArm)
+
+      const w = t < 0.20 ? smoothstep(t / 0.20) : t > 0.80 ? smoothstep(1 - (t - 0.80) / 0.20) : 1
+
+      if (rArm) {
+        rArm.rotation.y = lerp(0, 1.0, w)
+        rArm.rotation.z = REST_ARM_Z
+        rArm.rotation.x = 0
+      }
+
+      if (rForearm) {
+        rForearm.rotation.order = 'XYZ'
+        rForearm.rotation.y = lerp(0, 1.8, w)
+        rForearm.rotation.z = lerp(REST_FORE_R, 0, w)
+        rForearm.rotation.x = 0
+      }
+
+      if (rHand) {
+        rHand.rotation.x = lerp(REST_HAND_X, -0.9, w)
+        rHand.rotation.y = lerp(0, 0.05, w)
+        rHand.rotation.z = lerp(0, 0.6, w)
+      }
+
+      const fingerGroups: [VRMHumanBoneName, VRMHumanBoneName, VRMHumanBoneName][] = [
+        [VRMHumanBoneName.RightIndexProximal,  VRMHumanBoneName.RightIndexIntermediate,  VRMHumanBoneName.RightIndexDistal],
+        [VRMHumanBoneName.RightMiddleProximal, VRMHumanBoneName.RightMiddleIntermediate, VRMHumanBoneName.RightMiddleDistal],
+        [VRMHumanBoneName.RightRingProximal,   VRMHumanBoneName.RightRingIntermediate,   VRMHumanBoneName.RightRingDistal],
+        [VRMHumanBoneName.RightLittleProximal, VRMHumanBoneName.RightLittleIntermediate, VRMHumanBoneName.RightLittleDistal],
+      ]
+      for (const [prox, mid, dist] of fingerGroups) {
+        const curl = lerp(0.28, 1.45, w)
+        const p = h.getNormalizedBoneNode(prox)
+        const m = h.getNormalizedBoneNode(mid)
+        const d = h.getNormalizedBoneNode(dist)
+        if (p) { p.rotation.z = curl; p.rotation.x = 0 }
+        if (m) { m.rotation.z = curl * 0.9; m.rotation.x = 0 }
+        if (d) { d.rotation.z = curl * 0.7; d.rotation.x = 0 }
+      }
+
+      // VRM1 thumb chain: Metacarpal → Proximal → Distal
+      const rThumbMc = h.getNormalizedBoneNode(VRMHumanBoneName.RightThumbMetacarpal)
+      const rThumbP  = h.getNormalizedBoneNode(VRMHumanBoneName.RightThumbProximal)
+      const rThumbD  = h.getNormalizedBoneNode(VRMHumanBoneName.RightThumbDistal)
+      if (rThumbMc) { rThumbMc.rotation.x = lerp(0.2, 0.2, w); rThumbMc.rotation.z = lerp(-0.3, -0.3, w); rThumbMc.rotation.y = 0 }
+      if (rThumbP)  { rThumbP.rotation.x  = 0; rThumbP.rotation.z  = 0; rThumbP.rotation.y = 0 }
+      if (rThumbD)  { rThumbD.rotation.x  = 0; rThumbD.rotation.z  = 0; rThumbD.rotation.y = 0 }
+
+      if (lArm) lArm.rotation.z = -REST_ARM_Z
+    },
+  },
+
   dance: {
     duration: 3.0,
     fn(t, vrm) {
