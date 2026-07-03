@@ -176,13 +176,32 @@ export class Renderer {
     this.tickCallbacks.push(fn)
   }
 
+  private _skeletonHelper: THREE.SkeletonHelper | null = null
+
   setModel(model: THREE.Object3D): void {
     if (this.currentModel) this.scene.remove(this.currentModel)
+    if (this._skeletonHelper) { this.scene.remove(this._skeletonHelper); this._skeletonHelper = null }
     this.currentModel = model
     this._autoFit(model)
     this.scene.add(model)
     this.modelFraming = this._computeFraming(model)
     this._applyFraming(this.currentFraming)
+  }
+
+  // Toggle bone visualization for debugging — call avatar.renderer.debugBones()
+  debugBones(visible?: boolean): void {
+    if (!this.currentModel) return
+    if (visible === false) {
+      if (this._skeletonHelper) { this.scene.remove(this._skeletonHelper); this._skeletonHelper = null }
+      return
+    }
+    if (this._skeletonHelper) {
+      this.scene.remove(this._skeletonHelper)
+      this._skeletonHelper = null
+    } else {
+      this._skeletonHelper = new THREE.SkeletonHelper(this.currentModel)
+      this.scene.add(this._skeletonHelper)
+    }
   }
 
   private _computeFraming(model: THREE.Object3D): Record<AvatarFraming, FramingConfig> {

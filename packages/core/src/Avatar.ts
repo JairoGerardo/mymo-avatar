@@ -107,6 +107,11 @@ export class Avatar {
 
   // ── Visibility ────────────────────────────────────────────────────────────
 
+  debugBones(visible?: boolean): this {
+    this.renderer.debugBones(visible)
+    return this
+  }
+
   show(): this {
     this.renderer.show()
     return this

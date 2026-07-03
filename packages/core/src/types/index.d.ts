@@ -1,13 +1,22 @@
 export type AvatarPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
+export type AvatarFraming = "full" | "half" | "bust" | "face";
 export type AvatarTheme = "light" | "dark" | "transparent";
 export type Expression = "idle" | "smile" | "sad" | "happy" | "angry" | "surprised" | "thinking" | "confused" | "sleep";
-export type Gesture = "wave" | "nod" | "shakeHead" | "point" | "clap" | "jump" | "dance";
+export type Gesture = "wave" | "nod" | "yes" | "no" | "shakeHead" | "point" | "clap" | "jump" | "dance";
 export type AvatarState = "loading" | "success" | "error" | "warning" | "typing" | "listening" | "processing" | "complete";
 export type AvatarEvent = "click" | "loaded" | "animationStart" | "animationEnd" | "speechStart" | "speechEnd" | "modelLoaded";
 export type AvatarEventCallback = (event: AvatarEvent, data?: unknown) => void;
+export interface FramingModeConfig {
+    from?: number;
+    to?: number;
+    lookBias?: number;
+}
+export type FramingSliceConfig = Partial<Record<AvatarFraming, FramingModeConfig>>;
 export interface AvatarOptions {
     model?: string;
     position?: AvatarPosition;
+    framing?: AvatarFraming;
+    framingConfig?: FramingSliceConfig;
     size?: number;
     theme?: AvatarTheme;
     draggable?: boolean;

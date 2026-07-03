@@ -5,7 +5,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 
 const ROBOT_GLB = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb"
-// const FACECAP_GLB = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/facecap.glb"
 
 
 const log = document.getElementById("log")!
@@ -20,11 +19,12 @@ function setLog(msg: string, active = false): void {
 
 const avatar = new Avatar({
   // model: ROBOT_GLB,
-  model: "/girl.vrm",
-  // model: "/woody_toy_story_v2_kh3.glb",
+  // model: "/girl.vrm",
+  // model: "/Mark.vrm",
+  model: "/Maya.vrm",
   framing: "full",
   position: "bottom-right",
-  size: 200,
+  size: 600,
   theme: "dark",
   idle: true,
   idleInterval: 6000,
@@ -44,7 +44,10 @@ const avatar = new Avatar({
 
 avatar
   .on("loaded", () => setLog("Avatar loaded ✓", true))
-  .on("modelLoaded", () => setLog("Model ready ✓", true))
+  .on("modelLoaded", () => {
+    setLog("Model ready ✓", true);
+    // avatar.debugBones() // toggle SkeletonHelper to verify bone rotations in real time
+  })
   .on("click", () => { avatar.wave(); setLog("avatar.wave()", true) })
   .on("animationStart", (_: string, data: unknown) => setLog(`animationStart: ${JSON.stringify(data)}`, true))
   .on("speechStart", () => { setLog("speechStart — talking…"); ampWrap.style.display = "flex" })

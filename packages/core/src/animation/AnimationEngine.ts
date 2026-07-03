@@ -33,6 +33,7 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
     duration: 3.0,
     fn(t, vrm) {
       const h         = vrm.humanoid
+      const rShoulder = h.getNormalizedBoneNode(VRMHumanBoneName.RightShoulder)
       const rArm      = h.getNormalizedBoneNode(VRMHumanBoneName.RightUpperArm)
       const rForearm  = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
       const rHand     = h.getNormalizedBoneNode(VRMHumanBoneName.RightHand)
@@ -43,27 +44,36 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const lowerW = t > 0.80 ? smoothstep((t - 0.80) / 0.20) : 0
       const poseW  = raiseW * (1 - lowerW)
 
-      // Upper arm: ~30° above horizontal — hand ends up near ear/face level
+      // Shoulder: lift slightly so arm raises naturally from the joint
+      if (rShoulder) {
+        rShoulder.rotation.z = lerp(0, -0.20, poseW)
+        rShoulder.rotation.x = 0
+        rShoulder.rotation.y = 0
+      }
+
+      // Upper arm: Z=0 = T-pose = exactly horizontal (arm points straight to the side)
       if (rArm) {
-        rArm.rotation.z = lerp(REST_ARM_Z, -Math.PI / 6, poseW)
+        rArm.rotation.z = lerp(REST_ARM_Z, 0, poseW)
         rArm.rotation.x = 0
         rArm.rotation.y = 0
       }
-      // Shared wave phase so forearm and hand move in sync
+
+      // Forearm: Z=-PI/2 rotates forearm upward when upper arm is horizontal
+      if (rForearm) {
+        rForearm.rotation.order = 'XYZ'
+        rForearm.rotation.z = lerp(REST_FORE_R, -Math.PI / 2, poseW)
+        rForearm.rotation.x = 0
+        rForearm.rotation.y = 0
+      }
+
+      // Hand: palm faces outward (slight Z tilt) + wave side-to-side via Y
       const wavePhase = t >= 0.25 && t <= 0.80
         ? Math.sin((t - 0.25) / 0.55 * Math.PI * 4)
         : 0
 
-      // Elbow bent ~70°, supinate palm forward — forearm sways gently with the wave
-      if (rForearm) {
-        rForearm.rotation.z = lerp(REST_FORE_R, -1.35 + wavePhase * 0.12, poseW)
-        rForearm.rotation.y = lerp(0, Math.PI / 2, poseW)
-        rForearm.rotation.x = 0
-      }
-      // Hand rocks side-to-side in sync with forearm sway
       if (rHand) {
-        rHand.rotation.y = wavePhase * 0.4 * poseW
-        rHand.rotation.x = lerp(REST_HAND_X, 0, poseW)
+        rHand.rotation.x = lerp(REST_HAND_X, -Math.PI / 2, poseW)
+        rHand.rotation.y = wavePhase * 0.40 * poseW
         rHand.rotation.z = 0
       }
 
@@ -750,7 +760,7 @@ export class AnimationEngine {
     // Forearms: slight natural droop so hands don't hang stiffly
     const rForearm = h.getNormalizedBoneNode(VRMHumanBoneName.RightLowerArm)
     const lForearm = h.getNormalizedBoneNode(VRMHumanBoneName.LeftLowerArm)
-    if (rForearm) { rForearm.rotation.z = -0.10; rForearm.rotation.y = 0; rForearm.rotation.x = 0 }
+    if (rForearm) { rForearm.rotation.order = 'XYZ'; rForearm.rotation.z = -0.10; rForearm.rotation.y = 0; rForearm.rotation.x = 0 }
     if (lForearm) { lForearm.rotation.z =  0.10; lForearm.rotation.y = 0; lForearm.rotation.x = 0 }
 
     // Hands: slight downward tilt for a relaxed look

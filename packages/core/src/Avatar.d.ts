@@ -1,4 +1,4 @@
-import type { AvatarOptions, AvatarEvent, AvatarEventCallback, AvatarPlugin, AvatarPosition, Expression, AvatarState } from "./types/index.js";
+import type { AvatarOptions, AvatarEvent, AvatarEventCallback, AvatarPlugin, AvatarPosition, AvatarFraming, FramingSliceConfig, Expression, AvatarState } from "./types/index.js";
 import type { Viseme } from "./audio/LipSync.js";
 export declare class Avatar {
     private readonly options;
@@ -14,11 +14,14 @@ export declare class Avatar {
     private _bindContainerEvents;
     private _boundMouseLook;
     private _bindMouseLook;
+    debugBones(visible?: boolean): this;
     show(): this;
     hide(): this;
     destroy(): void;
     move(x: number, y: number): this;
     position(preset: AvatarPosition): this;
+    frame(preset: AvatarFraming): this;
+    setFramingConfig(config: FramingSliceConfig): this;
     scale(factor: number): this;
     size(px: number): this;
     expression(expr: Expression, intensity?: number): this;
@@ -33,6 +36,8 @@ export declare class Avatar {
     idle(): this;
     wave(): this;
     nod(): this;
+    yes(): this;
+    no(): this;
     shakeHead(): this;
     point(): this;
     clap(): this;
