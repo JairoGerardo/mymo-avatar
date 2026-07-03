@@ -143,6 +143,16 @@ function updateThemeSlice(mode: ThemeMode, key: "color1" | "color2" | "shadowOpa
 }
 
 const themeCfg = computed(() => themeSlices[themeMode.value])
+
+// ── Size ──────────────────────────────────────────────────────────────────────
+
+const avatarSize = ref(400)
+
+function updateSize(px: number) {
+  avatarSize.value = px
+  av().size(px)
+  flash(`avatar.size(${px})`)
+}
 </script>
 
 <template>
@@ -231,6 +241,19 @@ const themeCfg = computed(() => themeSlices[themeMode.value])
             <button @click="act('pos-top-right',    () => av().position('top-right'    as AvatarPosition))">top-right</button>
             <button @click="act('pos-top-left',     () => av().position('top-left'     as AvatarPosition))">top-left</button>
           </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Size -->
+      <div class="group">
+        <span class="group-label">Size</span>
+        <div class="slider-row" style="max-width:340px; width:100%;">
+          <label>px</label>
+          <input type="range" min="80" max="600" step="10" :value="avatarSize"
+            @input="updateSize(parseInt(($event.target as HTMLInputElement).value, 10))" />
+          <span class="val">{{ avatarSize }}</span>
         </div>
       </div>
 

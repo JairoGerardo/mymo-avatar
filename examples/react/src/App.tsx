@@ -145,6 +145,7 @@ export function App() {
   const [themeMode, setThemeMode]   = useState<ThemeMode>("dark")
   const [slices, setSlices]         = useState({ ...FRAMING_CONFIG })
   const [themeSlices, setThemeSlices] = useState<ThemeSlices>({ ...THEME_CONFIG })
+  const [avatarSize, setAvatarSize]   = useState(400)
 
   const flash = useCallback((msg: string) => {
     setLog(msg)
@@ -199,6 +200,12 @@ export function App() {
       flash(`themeConfig.${mode}.${key} updated`)
       return next
     })
+  }
+
+  function updateSize(px: number) {
+    setAvatarSize(px)
+    av().size(px)
+    flash(`avatar.size(${px})`)
   }
 
   const cfg      = slices[activeFraming]
@@ -295,6 +302,20 @@ export function App() {
             {btn("top-right",    () => av().position("top-right"    as AvatarPosition))}
             {btn("top-left",     () => av().position("top-left"     as AvatarPosition))}
           </>)}
+        </div>
+
+        <hr style={S.divider} />
+
+        {/* Size */}
+        <div style={S.group}>
+          <span style={S.groupLabel}>Size</span>
+          <div style={{ ...S.sliderRow, maxWidth: 340, width: "100%" }}>
+            <label style={S.sliderLabel}>px</label>
+            <input type="range" min={80} max={600} step={10} value={avatarSize}
+              style={{ flex: 1, accentColor: "#a78bfa" }}
+              onChange={e => updateSize(parseInt(e.target.value, 10))} />
+            <span style={S.sliderVal}>{avatarSize}</span>
+          </div>
         </div>
 
         <hr style={S.divider} />

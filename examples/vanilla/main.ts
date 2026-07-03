@@ -269,6 +269,18 @@ fcBiasSlider.addEventListener("input", () => {
 
 syncSliders(currentFraming)
 
+// ── Size slider ───────────────────────────────────────────────────────────────
+
+const sizeSlider = document.getElementById("size-slider") as HTMLInputElement
+const sizeVal    = document.getElementById("size-val")!
+
+sizeSlider.addEventListener("input", () => {
+  const px = parseInt(sizeSlider.value, 10)
+  sizeVal.textContent = String(px)
+  avatar.size(px)
+  setLog(`avatar.size(${px})`, true)
+})
+
 document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const action = btn.dataset["action"]!
