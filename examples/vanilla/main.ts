@@ -18,9 +18,18 @@ function setLog(msg: string, active = false): void {
   if (active) setTimeout(() => (log.className = ""), 2000)
 }
 
+const INITIAL_FRAMING = "bust"
+
+const FRAMING_CONFIG = {
+  full: { from: 0.00, lookBias: 0.50 },
+  half: { from: 0.48, lookBias: 0.60 },
+  bust: { from: 0.65, lookBias: 0.55 },
+  face: { from: 0.72, lookBias: 0.65 },
+}
+
 const avatar = new Avatar({
   model: MODEL,
-  framing: "full",
+  framing: INITIAL_FRAMING,
   position: "bottom-right",
   size: 600,
   theme: "dark",
@@ -31,13 +40,7 @@ const avatar = new Avatar({
   lipSync: true,
   draggable: true,
   zIndex: 9999,
-  // Per-model framing tuning — adjust these until the framing looks right for your GLB/VRM
-  framingConfig: {
-    full: { from: 0.00, lookBias: 0.50 },
-    half: { from: 0.50, lookBias: 0.55 },
-    bust: { from: 0.60, lookBias: 0.62 },
-    face: { from: 0.72, lookBias: 0.65 },
-  },
+  framingConfig: FRAMING_CONFIG,
 })
 
 avatar
@@ -148,14 +151,13 @@ const ACTIONS: Record<string, ActionFn> = {
 
 // ── Framing buttons + config sliders ─────────────────────────────────────────
 
-let currentFraming = "full"
+let currentFraming = INITIAL_FRAMING
 
-// Per-mode config (mirrors framingConfig passed to the Avatar constructor)
 const framingSlices: Record<string, { from: number; lookBias: number }> = {
-  full: { from: 0.00, lookBias: 0.50 },
-  half: { from: 0.50, lookBias: 0.55 },
-  bust: { from: 0.60, lookBias: 0.62 },
-  face: { from: 0.72, lookBias: 0.65 },
+  full: { ...FRAMING_CONFIG.full },
+  half: { ...FRAMING_CONFIG.half },
+  bust: { ...FRAMING_CONFIG.bust },
+  face: { ...FRAMING_CONFIG.face },
 }
 
 const fcModeLabel  = document.getElementById("fc-mode-label")!
