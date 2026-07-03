@@ -24,7 +24,7 @@ const FRAMING_CONFIG = {
   full: { from: 0.00, lookBias: 0.50 },
   half: { from: 0.48, lookBias: 0.60 },
   bust: { from: 0.65, lookBias: 0.55 },
-  face: { from: 0.72, lookBias: 0.65 },
+  face: { from: 0.76, lookBias: 0.58 },
 }
 
 const avatar = new Avatar({
