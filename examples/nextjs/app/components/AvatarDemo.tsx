@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useAvatar } from "@mymo/react"
+import { useAvatar } from "@mymo/avatar/react"
 import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymo/avatar"
 
 // ── Constants ─────────────────────────────────────────────────────────────────

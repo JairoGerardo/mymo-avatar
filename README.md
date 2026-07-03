@@ -375,13 +375,13 @@ document.querySelector("#wave-btn")?.addEventListener("click", () => avatar.wave
 ### React
 
 ```bash
-npm install @mymo/react @mymo/avatar three
+npm install @mymo/avatar three
 ```
 
 **Hook**
 
 ```tsx
-import { useAvatar } from "@mymo/react"
+import { useAvatar } from "@mymo/avatar/react"
 
 function MyComponent() {
   const avatarRef = useAvatar({
@@ -402,7 +402,7 @@ function MyComponent() {
 
 ```tsx
 import { useRef } from "react"
-import { AvatarWidget } from "@mymo/react"
+import { AvatarWidget } from "@mymo/avatar/react"
 import type { Avatar } from "@mymo/avatar"
 
 export function App() {
@@ -433,14 +433,14 @@ export function App() {
 ### Vue 3
 
 ```bash
-npm install @mymo/vue @mymo/avatar three
+npm install @mymo/avatar three
 ```
 
 **Composable**
 
 ```vue
 <script setup lang="ts">
-import { useAvatar } from "@mymo/vue"
+import { useAvatar } from "@mymo/avatar/vue"
 
 const avatar = useAvatar({
   model: "https://...",
@@ -464,7 +464,7 @@ const avatar = useAvatar({
 ```vue
 <script setup lang="ts">
 import { ref } from "vue"
-import { AvatarWidget } from "@mymo/vue"
+import { AvatarWidget } from "@mymo/avatar/vue"
 
 const widgetRef = ref()
 const avatar = () => widgetRef.value?.avatar.value
@@ -492,7 +492,7 @@ Access the avatar instance via `widgetRef.value.avatar.value` (the component exp
 ### Next.js
 
 ```bash
-npm install @mymo/react @mymo/avatar three
+npm install @mymo/avatar three
 ```
 
 The avatar uses WebGL and `document.body`, so it must run **client-side only**. Always use `dynamic` with `ssr: false`.
@@ -503,7 +503,7 @@ The avatar uses WebGL and `document.body`, so it must run **client-side only**. 
 // app/components/AvatarDemo.tsx
 "use client"
 
-import { useAvatar } from "@mymo/react"
+import { useAvatar } from "@mymo/avatar/react"
 
 export default function AvatarDemo() {
   const avatarRef = useAvatar({
@@ -533,7 +533,7 @@ Add `transpilePackages` to `next.config.ts`:
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@mymo/avatar", "@mymo/react"],
+  transpilePackages: ["@mymo/avatar"],
 }
 
 export default nextConfig
@@ -546,7 +546,7 @@ export default nextConfig
 import dynamic from "next/dynamic"
 
 const AvatarWidget = dynamic(
-  () => import("@mymo/react").then(m => m.AvatarWidget),
+  () => import("@mymo/avatar/react").then(m => m.AvatarWidget),
   { ssr: false }
 )
 

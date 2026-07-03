@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@mymo/avatar": "workspace:*",
-    "@mymo/vue": "workspace:*",
     "three": "^0.165.0",
     "vue": "^3.4.0"
   },

@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@mymo/avatar": "workspace:*",
-    "@mymo/react": "workspace:*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "three": "^0.165.0"

@@ -29,9 +29,6 @@ importers:
       '@mymo/avatar':
         specifier: workspace:*
         version: link:../../packages/core
-      '@mymo/react':
-        specifier: workspace:*
-        version: link:../../packages/react
       next:
         specifier: ^14.2.0
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -63,9 +60,6 @@ importers:
       '@mymo/avatar':
         specifier: workspace:*
         version: link:../../packages/core
-      '@mymo/react':
-        specifier: workspace:*
-        version: link:../../packages/react
       react:
         specifier: ^18.3.0
         version: 18.3.1
@@ -113,9 +107,6 @@ importers:
       '@mymo/avatar':
         specifier: workspace:*
         version: link:../../packages/core
-      '@mymo/vue':
-        specifier: workspace:*
-        version: link:../../packages/vue
       three:
         specifier: ^0.165.0
         version: 0.165.0
@@ -136,12 +127,18 @@ importers:
         specifier: ^3.5.4
         version: 3.5.4(three@0.165.0)
     devDependencies:
+      '@types/react':
+        specifier: ^18.0.0
+        version: 18.3.31
       '@types/three':
         specifier: ^0.165.0
         version: 0.165.0
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
+      react:
+        specifier: ^18.0.0
+        version: 18.3.1
       three:
         specifier: ^0.165.0
         version: 0.165.0
@@ -157,51 +154,6 @@ importers:
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.43)(jsdom@29.1.1)
-
-  packages/plugins/elevenlabs:
-    devDependencies:
-      '@mymo/avatar':
-        specifier: workspace:*
-        version: link:../../core
-      vite:
-        specifier: ^5.4.0
-        version: 5.4.21(@types/node@20.19.43)
-      vite-plugin-dts:
-        specifier: ^4.0.0
-        version: 4.5.4(@types/node@20.19.43)(rollup@4.62.2)(typescript@5.9.3)(vite@5.4.21(@types/node@20.19.43))
-
-  packages/react:
-    devDependencies:
-      '@mymo/avatar':
-        specifier: workspace:*
-        version: link:../core
-      '@types/react':
-        specifier: ^18.0.0
-        version: 18.3.31
-      react:
-        specifier: ^18.0.0
-        version: 18.3.1
-      vite:
-        specifier: ^5.4.0
-        version: 5.4.21(@types/node@20.19.43)
-      vite-plugin-dts:
-        specifier: ^4.0.0
-        version: 4.5.4(@types/node@20.19.43)(rollup@4.62.2)(typescript@5.9.3)(vite@5.4.21(@types/node@20.19.43))
-
-  packages/vue:
-    devDependencies:
-      '@mymo/avatar':
-        specifier: workspace:*
-        version: link:../core
-      '@vitejs/plugin-vue':
-        specifier: ^5.0.0
-        version: 5.2.4(vite@5.4.21(@types/node@20.19.43))(vue@3.5.39(typescript@5.9.3))
-      vite:
-        specifier: ^5.4.0
-        version: 5.4.21(@types/node@20.19.43)
-      vite-plugin-dts:
-        specifier: ^4.0.0
-        version: 4.5.4(@types/node@20.19.43)(rollup@4.62.2)(typescript@5.9.3)(vite@5.4.21(@types/node@20.19.43))
       vue:
         specifier: ^3.0.0
         version: 3.5.39(typescript@5.9.3)

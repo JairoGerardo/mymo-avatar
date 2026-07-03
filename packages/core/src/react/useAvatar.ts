@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
-import { Avatar } from "@mymo/avatar"
-import type { AvatarOptions } from "@mymo/avatar"
+import { Avatar } from "../index.js"
+import type { AvatarOptions } from "../index.js"
 
 export function useAvatar(options: AvatarOptions): React.RefObject<Avatar | null> {
   const ref = useRef<Avatar | null>(null)

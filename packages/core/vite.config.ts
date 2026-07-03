@@ -7,25 +7,28 @@ export default defineConfig({
     dts({
       include: ["src"],
       outDir: "dist",
-      rollupTypes: true,
+      rollupTypes: false,
     }),
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "MymoAvatar",
-      formats: ["es", "cjs", "umd"],
-      fileName: (format) => {
-        if (format === "es") return "mymo-avatar.js"
-        if (format === "cjs") return "mymo-avatar.cjs"
-        return "mymo-avatar.umd.js"
+      entry: {
+        "mymo-avatar": resolve(__dirname, "src/index.ts"),
+        "react": resolve(__dirname, "src/react/index.ts"),
+        "vue": resolve(__dirname, "src/vue/index.ts"),
       },
+      formats: ["es", "cjs"],
+      fileName: (format, entryName) =>
+        format === "es" ? `${entryName}.js` : `${entryName}.cjs`,
     },
     rollupOptions: {
-      external: ["three"],
+      external: ["three", "react", "react/jsx-runtime", "vue", "@pixiv/three-vrm"],
       output: {
         globals: {
           three: "THREE",
+          react: "React",
+          "react/jsx-runtime": "ReactJSXRuntime",
+          vue: "Vue",
         },
       },
     },

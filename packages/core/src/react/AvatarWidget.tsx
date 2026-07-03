@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react"
 import { useAvatar } from "./useAvatar.js"
-import type { Avatar, AvatarOptions } from "@mymo/avatar"
+import type { Avatar, AvatarOptions } from "../index.js"
 
 export interface AvatarWidgetProps extends AvatarOptions {
   className?: string
@@ -13,7 +13,6 @@ export const AvatarWidget = forwardRef<Avatar | null, AvatarWidgetProps>(
 
     useImperativeHandle(ref, () => avatarRef.current!)
 
-    // Avatar mounts itself directly to document.body — no DOM node needed here
     return null
   },
 )
