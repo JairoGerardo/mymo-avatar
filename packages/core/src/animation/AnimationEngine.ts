@@ -268,7 +268,7 @@ const VRM_GESTURES: Record<Gesture, { duration: number; fn: GestureFn }> = {
       const w = t < 0.20 ? smoothstep(t / 0.20) : t > 0.80 ? smoothstep(1 - (t - 0.80) / 0.20) : 1
 
       if (rArm) {
-        rArm.rotation.y = lerp(0, 1.0, w)
+        rArm.rotation.y = lerp(0, 0.9, w)
         rArm.rotation.z = REST_ARM_Z
         rArm.rotation.x = 0
       }
