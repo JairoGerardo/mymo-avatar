@@ -68,7 +68,7 @@ The avatar mounts itself to `document.body` as a fixed floating widget immediate
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `model` | `string` | `"maya"` | Model name (CDN-resolved) or a GLB/VRM URL |
+| `model` | `string` | — | GLB or VRM URL to load on init |
 | `position` | `AvatarPosition` | `"bottom-right"` | Corner preset |
 | `size` | `number` | `180` | Widget size in px |
 | `theme` | `AvatarTheme` | `"light"` | Background theme |
@@ -282,10 +282,6 @@ Available events: `"click"` `"loaded"` `"modelLoaded"` `"animationStart"` `"anim
 ### Load models
 
 ```ts
-// By name — resolved from CDN (@mymo/model-{name})
-await avatar.load("maya")
-await avatar.load("robot")
-
 // By direct URL — GLB and VRM both supported
 await avatar.load("https://example.com/my-avatar.glb")
 await avatar.load("https://example.com/my-avatar.vrm")
@@ -369,7 +365,7 @@ No adapter needed — import and go:
 ```ts
 import { Avatar } from "@mymo/avatar"
 
-const avatar = new Avatar({ model: "maya", framing: "bust", theme: "dark" })
+const avatar = new Avatar({ model: "https://example.com/my-avatar.vrm", framing: "bust", theme: "dark" })
 
 document.querySelector("#wave-btn")?.addEventListener("click", () => avatar.wave())
 ```
@@ -577,7 +573,7 @@ No build step required:
 <script src="https://unpkg.com/@mymo/avatar/dist/mymo-avatar.umd.js"></script>
 <script>
   const { Avatar } = MymoAvatar
-  const avatar = new Avatar({ model: "maya", theme: "dark", framing: "bust" })
+  const avatar = new Avatar({ model: "https://example.com/my-avatar.vrm", theme: "dark", framing: "bust" })
 </script>
 ```
 
@@ -611,13 +607,16 @@ Missing features degrade gracefully and are skipped silently after the initial l
 
 ### Built-in models
 
-Named models are resolved from the CDN automatically:
+> **Coming in v1.1.** Named models (`maya`, `robot`, `fox`) will be published as separate npm packages (`@mymo/model-maya`, etc.) and resolved from CDN automatically. Use a direct URL in the meantime:
 
 ```ts
-await avatar.load("maya")    // @mymo/model-maya
-await avatar.load("robot")   // @mymo/model-robot
-await avatar.load("fox")     // @mymo/model-fox
+// Use any GLB or VRM by URL today
+await avatar.load("https://example.com/my-avatar.vrm")
+await avatar.load("https://example.com/my-avatar.glb")
+await avatar.load("/models/local-avatar.vrm")  // local file
 ```
+
+Good free VRM sources: [VRoid Hub](https://hub.vroid.com), [Booth](https://booth.pm).
 
 ---
 
