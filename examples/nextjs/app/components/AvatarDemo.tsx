@@ -25,7 +25,8 @@ const THEME_CONFIG = {
 
 async function loadDemoAudio(): Promise<AudioBuffer> {
   const ctx = new AudioContext()
-  const response = await fetch("https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/demo_voice_example.mp3")
+  // Same CORS rule applies: use a local file or a CORS-enabled CDN URL in production.
+  const response = await fetch("/demo_voice_example.mp3")
   const arrayBuffer = await response.arrayBuffer()
   return ctx.decodeAudioData(arrayBuffer)
 }
@@ -109,8 +110,10 @@ const THEME_LABELS: Record<AvatarTheme, string> = { light: "☀️ light", dark:
 
 export default function AvatarDemo() {
   const avatarRef = useAvatar({
+    // Replace with any GLB/VRM URL hosted on a CORS-enabled CDN (e.g. Cloudflare R2,
+    // GitHub Pages, or your own server). GitHub Releases URLs don't support CORS.
     // model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
-    model: "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm",
+    model: "/Maya.vrm",
     framing: INITIAL_FRAMING,
     position: "bottom-right",
     size: 400,

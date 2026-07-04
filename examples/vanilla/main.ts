@@ -4,8 +4,11 @@ import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 
+// Replace with any GLB/VRM URL hosted on a CORS-enabled CDN (e.g. Cloudflare R2,
+// GitHub Pages, or your own server). GitHub Releases URLs don't support CORS
+// and cannot be loaded directly from the browser.
 // const MODEL = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb"
-const MODEL = "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm";
+const MODEL = "/Maya.vrm";
 
 
 const log = document.getElementById("log")!
@@ -84,7 +87,8 @@ avatar.on("speechStart", startAmpViz).on("speechEnd", stopAmpViz)
 
 async function loadDemoAudio(): Promise<AudioBuffer> {
   const ctx = new AudioContext()
-  const response = await fetch("https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/demo_voice_example.mp3")
+  // Same CORS rule applies: use a local file or a CORS-enabled CDN URL in production.
+  const response = await fetch("/demo_voice_example.mp3")
   const arrayBuffer = await response.arrayBuffer()
   return ctx.decodeAudioData(arrayBuffer)
 }

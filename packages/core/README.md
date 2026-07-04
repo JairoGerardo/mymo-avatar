@@ -50,7 +50,9 @@ yarn add @mymosdk/avatar three
 import { Avatar } from "@mymosdk/avatar"
 
 const avatar = new Avatar({
-  model: "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm",
+  // Pass any GLB or VRM URL hosted on a CORS-enabled server.
+  // See "Model hosting" below for details.
+  model: "https://your-cdn.example.com/my-avatar.vrm",
   position: "bottom-right",
   size: 200,
   theme: "dark",
@@ -59,6 +61,31 @@ const avatar = new Avatar({
 ```
 
 The avatar mounts itself to `document.body` as a fixed floating widget immediately.
+
+---
+
+## Model hosting
+
+The SDK loads models via the browser's `fetch` / XHR APIs, so the server that hosts your `.vrm` or `.glb` file **must send CORS headers** (`Access-Control-Allow-Origin: *`).
+
+| Hosting option | CORS | Notes |
+|---|---|---|
+| Your own server / CDN | ✅ configure it | Full control |
+| Cloudflare R2 (free tier) | ✅ built-in | Recommended for production |
+| GitHub Pages | ✅ built-in | Free, served from your repo |
+| Local `public/` folder | ✅ same-origin | Use during development |
+| **GitHub Releases** | ❌ not supported | Redirects to a domain that blocks browser CORS |
+
+```ts
+// ✅ Works — CORS-enabled CDN
+avatar.load("https://your-cdn.example.com/my-avatar.vrm")
+
+// ✅ Works — local file served by Vite / webpack dev server
+avatar.load("/models/my-avatar.vrm")
+
+// ❌ Will fail in the browser — GitHub Releases don't support CORS
+avatar.load("https://github.com/user/repo/releases/download/tag/file.vrm")
+```
 
 ---
 
