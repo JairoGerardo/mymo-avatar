@@ -50,7 +50,7 @@ yarn add @mymo/avatar three
 import { Avatar } from "@mymo/avatar"
 
 const avatar = new Avatar({
-  model: "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
+  model: "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm",
   position: "bottom-right",
   size: 200,
   theme: "dark",

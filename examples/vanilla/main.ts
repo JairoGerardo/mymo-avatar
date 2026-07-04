@@ -5,7 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 
 // const MODEL = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r165/examples/models/gltf/RobotExpressive/RobotExpressive.glb"
-const MODEL = "/Maya.vrm";
+const MODEL = "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm";
 
 
 const log = document.getElementById("log")!
@@ -84,7 +84,7 @@ avatar.on("speechStart", startAmpViz).on("speechEnd", stopAmpViz)
 
 async function loadDemoAudio(): Promise<AudioBuffer> {
   const ctx = new AudioContext()
-  const response = await fetch("/demo_voice_example.mp3")
+  const response = await fetch("https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/demo_voice_example.mp3")
   const arrayBuffer = await response.arrayBuffer()
   return ctx.decodeAudioData(arrayBuffer)
 }
