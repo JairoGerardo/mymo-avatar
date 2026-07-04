@@ -44,7 +44,8 @@ coverage/
 # Docs generados
 docs/api/
 
-# 3D models (distribuir por separado)
+# 3D models y audio demo (distribuir por separado, no subir al repo)
 *.glb
 *.gltf
-!examples/vanilla/public/*.glb
+*.vrm
+examples/*/public/*.mp3

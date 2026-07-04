@@ -80,25 +80,13 @@ function stopAmpViz(): void {
 
 avatar.on("speechStart", startAmpViz).on("speechEnd", stopAmpViz)
 
-// ── Synthetic speech audio (no external dependency) ──────────────────────────
-// Generates a short "voice-like" tone with amplitude variation to demo lip sync.
+// ── Demo voice audio ─────────────────────────────────────────────────────────
 
-function createSpeechTone(durationSec = 3): AudioBuffer {
+async function loadDemoAudio(): Promise<AudioBuffer> {
   const ctx = new AudioContext()
-  const rate = ctx.sampleRate
-  const buffer = ctx.createBuffer(1, rate * durationSec, rate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < data.length; i++) {
-    const t = i / rate
-    // Carrier (voice pitch) modulated by a slow envelope (syllable rhythm)
-    const envelope = 0.5 + 0.5 * Math.sin(2 * Math.PI * 3.5 * t)
-    const carrier  = Math.sin(2 * Math.PI * 180 * t)
-              + 0.4 * Math.sin(2 * Math.PI * 360 * t)
-              + 0.2 * Math.sin(2 * Math.PI * 540 * t)
-    data[i] = carrier * envelope * 0.3
-  }
-  ctx.close()
-  return buffer
+  const response = await fetch("/demo_voice_example.mp3")
+  const arrayBuffer = await response.arrayBuffer()
+  return ctx.decodeAudioData(arrayBuffer)
 }
 
 // ── Button actions ────────────────────────────────────────────────────────────
@@ -141,8 +129,7 @@ const ACTIONS: Record<string, ActionFn> = {
   randomLook:   () => avatar.randomLook(),
   // Speech
   talk: () => {
-    const buffer = createSpeechTone(3)
-    avatar.talk(buffer).catch(console.error)
+    loadDemoAudio().then(buffer => avatar.talk(buffer)).catch(console.error)
   },
   stopTalking: () => avatar.stopTalking(),
   // Position

@@ -21,22 +21,11 @@ const THEME_CONFIG = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function createSpeechTone(durationSec = 3): AudioBuffer {
+async function loadDemoAudio(): Promise<AudioBuffer> {
   const ctx = new AudioContext()
-  const rate = ctx.sampleRate
-  const buffer = ctx.createBuffer(1, rate * durationSec, rate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < data.length; i++) {
-    const t = i / rate
-    const envelope = 0.5 + 0.5 * Math.sin(2 * Math.PI * 3.5 * t)
-    const carrier =
-      Math.sin(2 * Math.PI * 180 * t) +
-      0.4 * Math.sin(2 * Math.PI * 360 * t) +
-      0.2 * Math.sin(2 * Math.PI * 540 * t)
-    data[i] = carrier * envelope * 0.3
-  }
-  ctx.close()
-  return buffer
+  const response = await fetch("/demo_voice_example.mp3")
+  const arrayBuffer = await response.arrayBuffer()
+  return ctx.decodeAudioData(arrayBuffer)
 }
 
 type ThemeMode = "dark" | "light"
@@ -294,7 +283,7 @@ export function App() {
             {btn("randomLook",  () => av().randomLook(),  "🔀 random look")}
           </>)}
           {group("Speech", <>
-            {btn("talk",        () => av().talk(createSpeechTone(3)).catch(console.error), "🗣️ talk")}
+            {btn("talk",        () => loadDemoAudio().then(buf => av().talk(buf)).catch(console.error), "🗣️ talk")}
             {btn("stopTalking", () => av().stopTalking(), "🔇 stop")}
           </>)}
           {group("Position", <>
