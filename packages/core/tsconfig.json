@@ -6,7 +6,7 @@
     "composite": true,
     "jsx": "react-jsx",
     "paths": {
-      "@mymo/avatar": ["./src/index.ts"]
+      "@mymosdk/avatar": ["./src/index.ts"]
     }
   },
   "include": ["src/**/*"],

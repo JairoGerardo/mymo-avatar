@@ -13,13 +13,13 @@ Initial public release.
 
 ### Packages
 
-- `@mymo/avatar@0.1.0` — core SDK
+- `@mymosdk/avatar@0.1.0` — core SDK
 - `@mymo/react@0.1.0` — React wrapper
 - `@mymo/vue@0.1.0` — Vue 3 wrapper
 
 ### Features
 
-#### Core (`@mymo/avatar`)
+#### Core (`@mymosdk/avatar`)
 
 - **Renderer** — Three.js WebGL, fixed floating container, `light`/`dark`/`transparent` themes
 - **Asset Loader** — dynamic GLB loading via `GLTFLoader`; swap models at runtime with `avatar.load(url)`

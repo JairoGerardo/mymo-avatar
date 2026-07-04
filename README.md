@@ -31,23 +31,23 @@ The avatar widget is a rounded `<div>` containing a `<canvas>`. The widget can b
 
 ```bash
 # npm
-npm install @mymo/avatar three
+npm install @mymosdk/avatar three
 
 # pnpm
-pnpm add @mymo/avatar three
+pnpm add @mymosdk/avatar three
 
 # yarn
-yarn add @mymo/avatar three
+yarn add @mymosdk/avatar three
 ```
 
-> Three.js is a peer dependency. If you already have it in your project, you only need `@mymo/avatar`.
+> Three.js is a peer dependency. If you already have it in your project, you only need `@mymosdk/avatar`.
 
 ---
 
 ## Quickstart
 
 ```ts
-import { Avatar } from "@mymo/avatar"
+import { Avatar } from "@mymosdk/avatar"
 
 const avatar = new Avatar({
   model: "https://github.com/JairoGerardo/mymo-avatar/releases/download/v0.1.0-assets/Maya.vrm",
@@ -340,7 +340,7 @@ Keeping the TTS call on the backend means your API key is never exposed to the b
 ### Build your own plugin
 
 ```ts
-import type { AvatarPlugin } from "@mymo/avatar"
+import type { AvatarPlugin } from "@mymosdk/avatar"
 
 const myPlugin: AvatarPlugin = {
   name: "my-plugin",
@@ -363,7 +363,7 @@ The `install` function receives the full `AvatarApi` (all public methods). Plugi
 No adapter needed — import and go:
 
 ```ts
-import { Avatar } from "@mymo/avatar"
+import { Avatar } from "@mymosdk/avatar"
 
 const avatar = new Avatar({ model: "https://example.com/my-avatar.vrm", framing: "bust", theme: "dark" })
 
@@ -375,13 +375,13 @@ document.querySelector("#wave-btn")?.addEventListener("click", () => avatar.wave
 ### React
 
 ```bash
-npm install @mymo/avatar three
+npm install @mymosdk/avatar three
 ```
 
 **Hook**
 
 ```tsx
-import { useAvatar } from "@mymo/avatar/react"
+import { useAvatar } from "@mymosdk/avatar/react"
 
 function MyComponent() {
   const avatarRef = useAvatar({
@@ -402,8 +402,8 @@ function MyComponent() {
 
 ```tsx
 import { useRef } from "react"
-import { AvatarWidget } from "@mymo/avatar/react"
-import type { Avatar } from "@mymo/avatar"
+import { AvatarWidget } from "@mymosdk/avatar/react"
+import type { Avatar } from "@mymosdk/avatar"
 
 export function App() {
   const ref = useRef<Avatar | null>(null)
@@ -433,14 +433,14 @@ export function App() {
 ### Vue 3
 
 ```bash
-npm install @mymo/avatar three
+npm install @mymosdk/avatar three
 ```
 
 **Composable**
 
 ```vue
 <script setup lang="ts">
-import { useAvatar } from "@mymo/avatar/vue"
+import { useAvatar } from "@mymosdk/avatar/vue"
 
 const avatar = useAvatar({
   model: "https://...",
@@ -464,7 +464,7 @@ const avatar = useAvatar({
 ```vue
 <script setup lang="ts">
 import { ref } from "vue"
-import { AvatarWidget } from "@mymo/avatar/vue"
+import { AvatarWidget } from "@mymosdk/avatar/vue"
 
 const widgetRef = ref()
 const avatar = () => widgetRef.value?.avatar.value
@@ -492,7 +492,7 @@ Access the avatar instance via `widgetRef.value.avatar.value` (the component exp
 ### Next.js
 
 ```bash
-npm install @mymo/avatar three
+npm install @mymosdk/avatar three
 ```
 
 The avatar uses WebGL and `document.body`, so it must run **client-side only**. Always use `dynamic` with `ssr: false`.
@@ -503,7 +503,7 @@ The avatar uses WebGL and `document.body`, so it must run **client-side only**. 
 // app/components/AvatarDemo.tsx
 "use client"
 
-import { useAvatar } from "@mymo/avatar/react"
+import { useAvatar } from "@mymosdk/avatar/react"
 
 export default function AvatarDemo() {
   const avatarRef = useAvatar({
@@ -533,7 +533,7 @@ Add `transpilePackages` to `next.config.ts`:
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@mymo/avatar"],
+  transpilePackages: ["@mymosdk/avatar"],
 }
 
 export default nextConfig
@@ -546,7 +546,7 @@ export default nextConfig
 import dynamic from "next/dynamic"
 
 const AvatarWidget = dynamic(
-  () => import("@mymo/avatar/react").then(m => m.AvatarWidget),
+  () => import("@mymosdk/avatar/react").then(m => m.AvatarWidget),
   { ssr: false }
 )
 
@@ -570,7 +570,7 @@ No build step required:
 
 ```html
 <script src="https://unpkg.com/three@0.165.0/build/three.min.js"></script>
-<script src="https://unpkg.com/@mymo/avatar/dist/mymo-avatar.umd.js"></script>
+<script src="https://unpkg.com/@mymosdk/avatar/dist/mymo-avatar.umd.js"></script>
 <script>
   const { Avatar } = MymoAvatar
   const avatar = new Avatar({ model: "https://example.com/my-avatar.vrm", theme: "dark", framing: "bust" })
@@ -622,7 +622,7 @@ Good free VRM sources: [VRoid Hub](https://hub.vroid.com), [Booth](https://booth
 
 ## TypeScript
 
-All types are exported from `@mymo/avatar`:
+All types are exported from `@mymosdk/avatar`:
 
 ```ts
 import type {
@@ -640,7 +640,7 @@ import type {
   FramingSliceConfig,
   FramingModeConfig,
   ThemeConfig,
-} from "@mymo/avatar"
+} from "@mymosdk/avatar"
 ```
 
 ---

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from "vue"
-import { useAvatar } from "@mymo/avatar/vue"
-import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymo/avatar"
+import { useAvatar } from "@mymosdk/avatar/vue"
+import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymosdk/avatar"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
-import { Avatar } from "@mymo/avatar"
-import type { AvatarPosition } from "@mymo/avatar"
+import { Avatar } from "@mymosdk/avatar"
+import type { AvatarPosition } from "@mymosdk/avatar"
 import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"

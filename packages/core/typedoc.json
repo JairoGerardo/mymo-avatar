@@ -2,7 +2,7 @@
   "entryPoints": ["src/index.ts"],
   "out": "../../docs/api",
   "highlightLanguages": ["typescript", "javascript", "html", "vue"],
-  "name": "@mymo/avatar",
+  "name": "@mymosdk/avatar",
   "readme": "../../README.md",
   "excludePrivate": true,
   "excludeInternal": true,

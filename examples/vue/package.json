@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mymo/avatar": "workspace:*",
+    "@mymosdk/avatar": "workspace:*",
     "three": "^0.165.0",
     "vue": "^3.4.0"
   },
