@@ -43,7 +43,7 @@
   ],
   "scripts": {
     "build": "vite build && vite build --config vite.umd.config.ts && tsc -p tsconfig.json --emitDeclarationOnly",
-    "prepack": "cp ../../README.md README.md",
+    "prepack": "node -e \"require('fs').copyFileSync('../../README.md', 'README.md')\"",
     "dev": "vite build --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
