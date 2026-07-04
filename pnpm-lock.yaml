@@ -26,7 +26,7 @@ importers:
 
   examples/nextjs:
     dependencies:
-      '@mymo/avatar':
+      '@mymosdk/avatar':
         specifier: workspace:*
         version: link:../../packages/core
       next:
@@ -57,7 +57,7 @@ importers:
 
   examples/react:
     dependencies:
-      '@mymo/avatar':
+      '@mymosdk/avatar':
         specifier: workspace:*
         version: link:../../packages/core
       react:
@@ -85,7 +85,7 @@ importers:
 
   examples/vanilla:
     dependencies:
-      '@mymo/avatar':
+      '@mymosdk/avatar':
         specifier: workspace:*
         version: link:../../packages/core
       '@pixiv/three-vrm':
@@ -104,7 +104,7 @@ importers:
 
   examples/vue:
     dependencies:
-      '@mymo/avatar':
+      '@mymosdk/avatar':
         specifier: workspace:*
         version: link:../../packages/core
       three:
