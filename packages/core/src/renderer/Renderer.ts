@@ -35,7 +35,7 @@ export class Renderer {
 
   private webgl!: THREE.WebGLRenderer
   private container!: HTMLDivElement
-  private clock = new THREE.Clock()
+  private lastTime = 0
   private rafId = 0
   private tickCallbacks: TickCallback[] = []
   private currentModel: THREE.Object3D | null = null
@@ -152,13 +152,14 @@ export class Renderer {
   }
 
   private _startLoop(): void {
-    const tick = () => {
+    const tick = (now: number) => {
       this.rafId = requestAnimationFrame(tick)
-      const delta = this.clock.getDelta()
+      const delta = this.lastTime ? (now - this.lastTime) / 1000 : 0
+      this.lastTime = now
       for (const cb of this.tickCallbacks) cb(delta)
       this.webgl.render(this.scene, this.camera)
     }
-    tick()
+    tick(0)
   }
 
   private _makeDraggable(): void {
