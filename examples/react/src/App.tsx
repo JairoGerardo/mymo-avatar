@@ -42,6 +42,34 @@ function buildThemeCss(mode: ThemeMode, slices: ThemeSlices) {
   }
 }
 
+// ── TTS helpers ───────────────────────────────────────────────────────────────
+
+const ELEVENLABS_DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM"
+
+async function fetchTTSAudio(provider: string, apiKey: string, voice: string, text: string): Promise<ArrayBuffer> {
+  if (!apiKey.trim()) throw new Error("Paste your API key first")
+  if (provider === "openai") {
+    const res = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "tts-1", voice, input: text }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+      throw new Error(err.error?.message ?? `OpenAI error ${res.status}`)
+    }
+    return res.arrayBuffer()
+  }
+  const voiceId = voice.trim() || ELEVENLABS_DEFAULT_VOICE
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: "POST",
+    headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+    body: JSON.stringify({ text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+  })
+  if (!res.ok) throw new Error(`ElevenLabs error ${res.status}`)
+  return res.arrayBuffer()
+}
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const S: Record<string, React.CSSProperties> = {
@@ -100,6 +128,16 @@ const S: Record<string, React.CSSProperties> = {
   colorInput: { width: "2.2rem", height: "1.5rem", cursor: "pointer", border: "1px solid rgba(167,139,250,0.3)", borderRadius: 4, background: "none", padding: 1 },
 }
 
+const sTTS: Record<string, React.CSSProperties> = {
+  panel:    { display: "flex", flexDirection: "column", gap: "0.6rem", padding: "0.85rem 1rem", border: "1px solid rgba(96,165,250,0.25)", borderRadius: 12, background: "rgba(96,165,250,0.04)", width: "100%" },
+  warning:  { fontSize: "0.68rem", color: "#f59e0b", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 6, padding: "0.4rem 0.6rem", textAlign: "center" as const, lineHeight: 1.4 },
+  row:      { display: "flex", gap: "0.5rem", alignItems: "center", width: "100%", flexWrap: "wrap" as const },
+  label:    { fontSize: "0.72rem", color: "#888", minWidth: "4.5rem", textAlign: "right" as const },
+  input:    { flex: 1, minWidth: 0, padding: "0.35rem 0.55rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 6, color: "#e0e0ff", fontSize: "0.78rem" },
+  textarea: { width: "100%", padding: "0.45rem 0.6rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(167,139,250,0.2)", borderRadius: 6, color: "#e0e0ff", fontSize: "0.82rem", resize: "vertical" as const, minHeight: 56, fontFamily: "inherit" },
+  speakBtn: { border: "1px solid rgba(96,165,250,0.4)", background: "rgba(96,165,250,0.1)", color: "#93c5fd", width: "100%", fontSize: "0.85rem", padding: "0.55rem", borderRadius: 8, cursor: "pointer" },
+}
+
 const FRAMINGS: AvatarFraming[] = ["full", "half", "bust", "face"]
 const THEMES: AvatarTheme[]     = ["light", "dark", "transparent"]
 const THEME_LABELS: Record<AvatarTheme, string> = { light: "☀️ light", dark: "🌙 dark", transparent: "◻️ transparent" }
@@ -139,6 +177,13 @@ export function App() {
   const [slices, setSlices]         = useState({ ...FRAMING_CONFIG })
   const [themeSlices, setThemeSlices] = useState<ThemeSlices>({ ...THEME_CONFIG })
   const [avatarSize, setAvatarSize]   = useState(400)
+  const [ttsProvider, setTtsProvider] = useState("openai")
+  const [ttsApiKey, setTtsApiKey]     = useState("")
+  const [ttsVoice, setTtsVoice]       = useState("nova")
+  const [ttsText, setTtsText]         = useState("Hello! I'm your Mymo avatar. How can I help you today?")
+  const [ttsBusy, setTtsBusy]         = useState(false)
+  const [ttsStatus, setTtsStatus]     = useState("")
+  const [ttsStatusColor, setTtsStatusColor] = useState("#555")
 
   const flash = useCallback((msg: string) => {
     setLog(msg)
@@ -199,6 +244,27 @@ export function App() {
     setAvatarSize(px)
     av().size(px)
     flash(`avatar.size(${px})`)
+  }
+
+  async function handleSpeak() {
+    const text = ttsText.trim()
+    if (!text) return
+    setTtsBusy(true)
+    setTtsStatus("Generating audio…")
+    setTtsStatusColor("#60a5fa")
+    try {
+      const audio = await fetchTTSAudio(ttsProvider, ttsApiKey, ttsVoice, text)
+      setTtsStatus("Playing…")
+      await av().talk(audio)
+      setTtsStatus("Done ✓")
+      setTtsStatusColor("#a78bfa")
+      setTimeout(() => setTtsStatus(""), 2000)
+    } catch (err) {
+      setTtsStatus(`Error: ${err instanceof Error ? err.message : String(err)}`)
+      setTtsStatusColor("#f87171")
+    } finally {
+      setTtsBusy(false)
+    }
   }
 
   const cfg      = slices[activeFraming]
@@ -368,6 +434,45 @@ export function App() {
           </div>
 
         </div>
+
+        <hr style={S.divider} />
+
+        {/* TTS Demo */}
+        <div style={sTTS.panel}>
+          <span style={{ ...S.groupLabel, color: "#60a5fa" }}>TTS Demo — speak with AI</span>
+          <p style={sTTS.warning}>
+            ⚠️ For testing only — paste your key to try TTS directly from the browser.<br />
+            Never ship API keys in frontend code. Use a backend proxy in production.
+          </p>
+          <div style={sTTS.row}>
+            <label style={sTTS.label}>Provider</label>
+            <select value={ttsProvider} onChange={e => { setTtsProvider(e.target.value); setTtsVoice(e.target.value === "openai" ? "nova" : "") }} style={sTTS.input}>
+              <option value="openai">OpenAI TTS</option>
+              <option value="elevenlabs">ElevenLabs</option>
+            </select>
+          </div>
+          <div style={sTTS.row}>
+            <label style={sTTS.label}>API Key</label>
+            <input type="password" value={ttsApiKey} onChange={e => setTtsApiKey(e.target.value)}
+              placeholder={ttsProvider === "openai" ? "sk-…" : "Your ElevenLabs API key"}
+              style={sTTS.input} autoComplete="off" />
+          </div>
+          <div style={sTTS.row}>
+            <label style={sTTS.label}>Voice</label>
+            {ttsProvider === "openai"
+              ? <select value={ttsVoice} onChange={e => setTtsVoice(e.target.value)} style={sTTS.input}>
+                  {["alloy","echo","fable","nova","onyx","shimmer"].map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              : <input type="text" value={ttsVoice} onChange={e => setTtsVoice(e.target.value)}
+                  placeholder="Voice ID (e.g. 21m00Tcm4TlvDq8ikWAM)" style={sTTS.input} />
+            }
+          </div>
+          <textarea value={ttsText} onChange={e => setTtsText(e.target.value)}
+            placeholder="Type something for the avatar to say…" style={sTTS.textarea} />
+          <button onClick={handleSpeak} disabled={ttsBusy} style={sTTS.speakBtn}>🔊 Speak</button>
+          <div style={{ fontSize: "0.72rem", fontFamily: "monospace", textAlign: "center", minHeight: "1rem", color: ttsStatusColor }}>{ttsStatus}</div>
+        </div>
+
       </div>
 
       {talking && (

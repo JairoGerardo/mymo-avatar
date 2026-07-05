@@ -1,0 +1,40 @@
+{
+  "name": "@mymosdk/plugin-anthropic",
+  "version": "0.1.0",
+  "description": "Anthropic streaming plugin for @mymosdk/avatar",
+  "keywords": ["avatar", "anthropic", "claude", "streaming", "plugin"],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.json --emitDeclarationOnly",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@mymosdk/avatar": "*",
+    "@anthropic-ai/sdk": ">=0.20.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": { "optional": true }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "vite": "^5.4.0",
+    "vite-plugin-dts": "^4.0.0",
+    "typescript": "~5.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JairoGerardo/mymo-avatar.git"
+  }
+}

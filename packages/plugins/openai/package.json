@@ -1,0 +1,40 @@
+{
+  "name": "@mymosdk/plugin-openai",
+  "version": "0.1.0",
+  "description": "OpenAI TTS plugin for @mymosdk/avatar",
+  "keywords": ["avatar", "openai", "tts", "plugin"],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.json --emitDeclarationOnly",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@mymosdk/avatar": "*",
+    "openai": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "openai": { "optional": true }
+  },
+  "devDependencies": {
+    "openai": "^4.0.0",
+    "vite": "^5.4.0",
+    "vite-plugin-dts": "^4.0.0",
+    "typescript": "~5.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JairoGerardo/mymo-avatar.git"
+  }
+}

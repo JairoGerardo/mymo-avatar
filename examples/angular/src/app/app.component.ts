@@ -53,6 +53,15 @@ export class AppComponent implements OnInit, OnDestroy {
   get fcCurrent() { return this.framingSlices[this.activeFraming] }
   get tcCurrent() { return this.themeSlices[this.currentThemeMode] }
 
+  ttsProvider      = "openai"
+  ttsApiKey        = ""
+  ttsVoice         = "nova"
+  ttsText          = "Hello! I'm your Mymo avatar. How can I help you today?"
+  ttsBusy          = false
+  ttsStatus        = ""
+  ttsStatusColor   = "#555"
+  readonly ttsOpenAIVoices = ["alloy","echo","fable","nova","onyx","shimmer"]
+
   readonly expressions = ["smile","happy","sad","angry","surprised","thinking","confused","sleep","idle"]
   readonly gestures    = ["wave","nod","yes","no","shakeHead","clap","jump","dance","thumbsUp"]
   readonly states      = ["loading","success","error","warning","listening","typing","processing","complete","clearState"]
@@ -232,5 +241,56 @@ export class AppComponent implements OnInit, OnDestroy {
     this.themeSlices = { ...this.themeSlices }
     this.avatar.setThemeConfig({ [this.currentThemeMode]: this.buildThemeConfig(this.currentThemeMode) })
     this.setLog(`themeConfig.${this.currentThemeMode}.shadow = ${v.toFixed(2)}`, true)
+  }
+
+  onTtsProviderChange(e: Event): void {
+    this.ttsProvider = (e.target as HTMLSelectElement).value
+    this.ttsVoice = this.ttsProvider === "openai" ? "nova" : ""
+  }
+
+  async ttsSpeak(): Promise<void> {
+    const text = this.ttsText.trim()
+    if (!text) return
+    this.ttsBusy = true
+    this.ttsStatus = "Generating audio…"
+    this.ttsStatusColor = "#60a5fa"
+    try {
+      const audio = await this.fetchTTSAudio(this.ttsProvider, this.ttsApiKey, this.ttsVoice, text)
+      this.ttsStatus = "Playing…"
+      await this.avatar.talk(audio)
+      this.ttsStatus = "Done ✓"
+      this.ttsStatusColor = "#a78bfa"
+      setTimeout(() => { this.ttsStatus = "" }, 2000)
+    } catch (err) {
+      this.ttsStatus = `Error: ${err instanceof Error ? err.message : String(err)}`
+      this.ttsStatusColor = "#f87171"
+    } finally {
+      this.ttsBusy = false
+    }
+  }
+
+  private async fetchTTSAudio(provider: string, apiKey: string, voice: string, text: string): Promise<ArrayBuffer> {
+    const ELEVENLABS_DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM"
+    if (!apiKey.trim()) throw new Error("Paste your API key first")
+    if (provider === "openai") {
+      const res = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "tts-1", voice, input: text }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+        throw new Error(err.error?.message ?? `OpenAI error ${res.status}`)
+      }
+      return res.arrayBuffer()
+    }
+    const voiceId = voice.trim() || ELEVENLABS_DEFAULT_VOICE
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: "POST",
+      headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+      body: JSON.stringify({ text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+    })
+    if (!res.ok) throw new Error(`ElevenLabs error ${res.status}`)
+    return res.arrayBuffer()
   }
 }

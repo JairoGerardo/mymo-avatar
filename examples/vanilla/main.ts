@@ -307,6 +307,94 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
 document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
 document.querySelector<HTMLButtonElement>(`button[data-theme="${INITIAL_THEME}"]`)?.classList.add("active")
 
+// ── TTS Demo panel ───────────────────────────────────────────────────────────
+
+const ttsProvider      = document.getElementById("tts-provider")       as HTMLSelectElement
+const ttsApiKey        = document.getElementById("tts-apikey")          as HTMLInputElement
+const ttsVoiceOpenAI   = document.getElementById("tts-voice-openai")    as HTMLSelectElement
+const ttsVoiceElevenLabs = document.getElementById("tts-voice-elevenlabs") as HTMLInputElement
+const ttsText          = document.getElementById("tts-text")            as HTMLTextAreaElement
+const ttsSpeakBtn      = document.getElementById("tts-speak-btn")       as HTMLButtonElement
+const ttsStatus        = document.getElementById("tts-status")!
+
+const ELEVENLABS_DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM" // Rachel
+
+ttsProvider.addEventListener("change", () => {
+  const isOpenAI = ttsProvider.value === "openai"
+  ttsVoiceOpenAI.style.display      = isOpenAI ? "" : "none"
+  ttsVoiceElevenLabs.style.display  = isOpenAI ? "none" : ""
+  ttsApiKey.placeholder = isOpenAI ? "sk-…" : "Your ElevenLabs API key"
+})
+
+async function fetchTTSAudio(text: string): Promise<ArrayBuffer> {
+  const apiKey = ttsApiKey.value.trim()
+  if (!apiKey) throw new Error("Paste your API key first")
+
+  if (ttsProvider.value === "openai") {
+    const res = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "tts-1",
+        voice: ttsVoiceOpenAI.value,
+        input: text,
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+      throw new Error(err.error?.message ?? `OpenAI error ${res.status}`)
+    }
+    return res.arrayBuffer()
+  }
+
+  // ElevenLabs
+  const voiceId = ttsVoiceElevenLabs.value.trim() || ELEVENLABS_DEFAULT_VOICE
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: "POST",
+    headers: {
+      "xi-api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+    },
+    body: JSON.stringify({
+      text,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+    }),
+  })
+  if (!res.ok) {
+    throw new Error(`ElevenLabs error ${res.status}`)
+  }
+  return res.arrayBuffer()
+}
+
+ttsSpeakBtn.addEventListener("click", async () => {
+  const text = ttsText.value.trim()
+  if (!text) return
+
+  ttsSpeakBtn.disabled = true
+  ttsStatus.textContent = "Generating audio…"
+  ttsStatus.style.color = "#60a5fa"
+
+  try {
+    const audio = await fetchTTSAudio(text)
+    ttsStatus.textContent = "Playing…"
+    await avatar.talk(audio)
+    ttsStatus.textContent = "Done ✓"
+    ttsStatus.style.color = "#a78bfa"
+    setTimeout(() => { ttsStatus.textContent = "" }, 2000)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    ttsStatus.textContent = `Error: ${msg}`
+    ttsStatus.style.color = "#f87171"
+  } finally {
+    ttsSpeakBtn.disabled = false
+  }
+})
+
 // ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
 // async function inspectModel(url: string): Promise<void> {
 //   const isVRM = url.endsWith(".vrm")

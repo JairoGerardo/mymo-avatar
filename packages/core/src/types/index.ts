@@ -105,3 +105,8 @@ export interface AvatarPlugin {
   name: string
   install(avatar: AvatarApi, options?: Record<string, unknown>): void
 }
+
+export interface TTSPlugin extends AvatarPlugin {
+  speak(text: string): Promise<void>
+  stop(): void
+}

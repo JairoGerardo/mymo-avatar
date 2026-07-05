@@ -8,6 +8,7 @@ export type {
   AvatarEventCallback,
   AvatarApi,
   AvatarPlugin,
+  TTSPlugin,
   AvatarState,
   Expression,
   Gesture,

@@ -47,3 +47,37 @@ input[type="color"] {
 
 #log { font-size: 0.75rem; color: #555; font-family: monospace; height: 1.2rem; transition: color 0.3s; }
 #log.active { color: #a78bfa; }
+
+.tts-panel {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(96,165,250,0.25); border-radius: 12px;
+  background: rgba(96,165,250,0.04); width: 100%; max-width: 680px;
+}
+.tts-label { color: #60a5fa !important; }
+.tts-warning {
+  font-size: 0.68rem; color: #f59e0b;
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 6px; padding: 0.4rem 0.6rem; text-align: center; line-height: 1.4;
+}
+.tts-row { display: flex; gap: 0.5rem; align-items: center; width: 100%; flex-wrap: wrap; }
+.tts-field-label { font-size: 0.72rem; color: #888; min-width: 4.5rem; text-align: right; }
+.tts-input {
+  flex: 1; min-width: 0; padding: 0.35rem 0.55rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.78rem;
+}
+.tts-input option { background: #1a1a3e; }
+.tts-textarea {
+  width: 100%; padding: 0.45rem 0.6rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.82rem;
+  resize: vertical; min-height: 56px; font-family: inherit;
+}
+.tts-speak-btn {
+  border: 1px solid rgba(96,165,250,0.4) !important;
+  background: rgba(96,165,250,0.1) !important;
+  color: #93c5fd !important; width: 100%; font-size: 0.85rem; padding: 0.55rem;
+}
+.tts-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.tts-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }

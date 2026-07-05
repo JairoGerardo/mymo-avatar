@@ -163,6 +163,73 @@
         padding: 1px;
       }
 
+      /* ── TTS demo panel ────────────────────────── */
+      .tts-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        border-radius: 12px;
+        background: rgba(96, 165, 250, 0.04);
+        width: 100%;
+      }
+      .tts-panel .group-label { align-self: center; color: #60a5fa; }
+      .tts-warning {
+        font-size: 0.68rem;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-radius: 6px;
+        padding: 0.4rem 0.6rem;
+        text-align: center;
+        line-height: 1.4;
+      }
+      .tts-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .tts-row label { font-size: 0.72rem; color: #888; min-width: 4.5rem; text-align: right; }
+      .tts-row select, .tts-row input[type="password"], .tts-row input[type="text"] {
+        flex: 1;
+        min-width: 0;
+        padding: 0.35rem 0.55rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(167,139,250,0.2);
+        border-radius: 6px;
+        color: #e0e0ff;
+        font-size: 0.78rem;
+      }
+      .tts-row select:focus, .tts-row input:focus { outline: none; border-color: rgba(96,165,250,0.6); }
+      .tts-row select option { background: #1a1a3e; }
+      textarea#tts-text {
+        width: 100%;
+        padding: 0.45rem 0.6rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(167,139,250,0.2);
+        border-radius: 6px;
+        color: #e0e0ff;
+        font-size: 0.82rem;
+        resize: vertical;
+        min-height: 3.5rem;
+        font-family: inherit;
+      }
+      textarea#tts-text:focus { outline: none; border-color: rgba(96,165,250,0.6); }
+      #tts-speak-btn {
+        border-color: rgba(96,165,250,0.4);
+        background: rgba(96,165,250,0.1);
+        color: #93c5fd;
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 0.55rem;
+      }
+      #tts-speak-btn:hover { background: rgba(96,165,250,0.22); border-color: rgba(96,165,250,0.7); color: #fff; }
+      #tts-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+      #tts-status { font-size: 0.72rem; color: #555; font-family: monospace; text-align: center; min-height: 1rem; }
+
       /* ── Log ────────────────────────────────────── */
       #log {
         font-size: 0.75rem;
@@ -327,6 +394,44 @@
         </div>
 
       </div>
+
+      <hr class="divider">
+
+      <!-- TTS Demo -->
+      <div class="tts-panel">
+        <span class="group-label">TTS Demo — speak with AI</span>
+        <p class="tts-warning">
+          ⚠️ For testing only — paste your key to try TTS directly from the browser.<br>
+          Never ship API keys in frontend code. Use a backend proxy in production.
+        </p>
+        <div class="tts-row">
+          <label>Provider</label>
+          <select id="tts-provider">
+            <option value="openai">OpenAI TTS</option>
+            <option value="elevenlabs">ElevenLabs</option>
+          </select>
+        </div>
+        <div class="tts-row">
+          <label>API Key</label>
+          <input type="password" id="tts-apikey" placeholder="sk-… or your ElevenLabs key" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="tts-row" id="tts-voice-row">
+          <label>Voice</label>
+          <select id="tts-voice-openai">
+            <option value="alloy">alloy</option>
+            <option value="echo">echo</option>
+            <option value="fable">fable</option>
+            <option value="nova" selected>nova</option>
+            <option value="onyx">onyx</option>
+            <option value="shimmer">shimmer</option>
+          </select>
+          <input type="text" id="tts-voice-elevenlabs" placeholder="Voice ID (e.g. 21m00Tcm4TlvDq8ikWAM)" style="display:none">
+        </div>
+        <textarea id="tts-text" placeholder="Type something for the avatar to say…">Hello! I'm your Mymo avatar. How can I help you today?</textarea>
+        <button id="tts-speak-btn">🔊 Speak</button>
+        <div id="tts-status"></div>
+      </div>
+
     </div>
 
     <div id="amp-wrap" style="display:none; align-items:center; gap:0.5rem; width:260px;">

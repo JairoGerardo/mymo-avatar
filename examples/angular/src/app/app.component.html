@@ -112,6 +112,43 @@
   </div>
 </div>
 
+<hr class="divider">
+
+<!-- TTS Demo -->
+<div class="tts-panel">
+  <span class="group-label tts-label">TTS Demo — speak with AI</span>
+  <p class="tts-warning">
+    ⚠️ For testing only — paste your key to try TTS directly from the browser.<br>
+    Never ship API keys in frontend code. Use a backend proxy in production.
+  </p>
+  <div class="tts-row">
+    <label class="tts-field-label">Provider</label>
+    <select [value]="ttsProvider" (change)="onTtsProviderChange($event)" class="tts-input">
+      <option value="openai">OpenAI TTS</option>
+      <option value="elevenlabs">ElevenLabs</option>
+    </select>
+  </div>
+  <div class="tts-row">
+    <label class="tts-field-label">API Key</label>
+    <input type="password" [value]="ttsApiKey" (input)="ttsApiKey = $any($event.target).value"
+      [placeholder]="ttsProvider === 'openai' ? 'sk-…' : 'Your ElevenLabs API key'"
+      class="tts-input" autocomplete="off" />
+  </div>
+  <div class="tts-row">
+    <label class="tts-field-label">Voice</label>
+    <select *ngIf="ttsProvider === 'openai'" [value]="ttsVoice" (change)="ttsVoice = $any($event.target).value" class="tts-input">
+      <option *ngFor="let v of ttsOpenAIVoices" [value]="v">{{ v }}</option>
+    </select>
+    <input *ngIf="ttsProvider !== 'openai'" type="text" [value]="ttsVoice"
+      (input)="ttsVoice = $any($event.target).value"
+      placeholder="Voice ID (e.g. 21m00Tcm4TlvDq8ikWAM)" class="tts-input" />
+  </div>
+  <textarea [value]="ttsText" (input)="ttsText = $any($event.target).value"
+    placeholder="Type something for the avatar to say…" class="tts-textarea"></textarea>
+  <button (click)="ttsSpeak()" [disabled]="ttsBusy" class="tts-speak-btn">🔊 Speak</button>
+  <div class="tts-status" [style.color]="ttsStatusColor">{{ ttsStatus }}</div>
+</div>
+
 <div *ngIf="talkingVisible" style="display:flex; align-items:center; gap:0.5rem; width:260px;">
   <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
   <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">

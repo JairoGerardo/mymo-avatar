@@ -145,6 +145,68 @@ function onSizeInput(e: Event) {
   setLog(`avatar.size(${px})`, true)
 }
 
+// ── TTS Demo ──────────────────────────────────────────────────────────────────
+
+const ELEVENLABS_DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM"
+
+const ttsProvider = ref("openai")
+const ttsApiKey   = ref("")
+const ttsVoice    = ref("nova")
+const ttsText     = ref("Hello! I'm your Mymo avatar. How can I help you today?")
+const ttsBusy     = ref(false)
+const ttsStatus   = ref("")
+const ttsStatusColor = ref("#555")
+
+function onTtsProviderChange(e: Event) {
+  ttsProvider.value = (e.target as HTMLSelectElement).value
+  ttsVoice.value = ttsProvider.value === "openai" ? "nova" : ""
+}
+
+async function fetchTTSAudio(provider: string, apiKey: string, voice: string, text: string): Promise<ArrayBuffer> {
+  if (!apiKey.trim()) throw new Error("Paste your API key first")
+  if (provider === "openai") {
+    const res = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "tts-1", voice, input: text }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+      throw new Error(err.error?.message ?? `OpenAI error ${res.status}`)
+    }
+    return res.arrayBuffer()
+  }
+  const voiceId = voice.trim() || ELEVENLABS_DEFAULT_VOICE
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: "POST",
+    headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+    body: JSON.stringify({ text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+  })
+  if (!res.ok) throw new Error(`ElevenLabs error ${res.status}`)
+  return res.arrayBuffer()
+}
+
+async function handleSpeak() {
+  const text = ttsText.value.trim()
+  if (!text) return
+  ttsBusy.value = true
+  ttsStatus.value = "Generating audio…"
+  ttsStatusColor.value = "#60a5fa"
+  try {
+    const audio = await fetchTTSAudio(ttsProvider.value, ttsApiKey.value, ttsVoice.value, text)
+    ttsStatus.value = "Playing…"
+    await avatar.talk(audio)
+    ttsStatus.value = "Done ✓"
+    ttsStatusColor.value = "#a78bfa"
+    setTimeout(() => { ttsStatus.value = "" }, 2000)
+  } catch (err) {
+    ttsStatus.value = `Error: ${err instanceof Error ? err.message : String(err)}`
+    ttsStatusColor.value = "#f87171"
+  } finally {
+    ttsBusy.value = false
+  }
+}
+
 function onFcFromInput(e: Event) {
   const v = parseFloat((e.target as HTMLInputElement).value)
   framingSlices[activeFraming.value as keyof typeof framingSlices].from = v
@@ -332,6 +394,42 @@ onUnmounted(() => {
         </template>
       </div>
 
+      <hr class="divider">
+
+      <!-- TTS Demo -->
+      <div class="tts-panel">
+        <span class="group-label tts-label">TTS Demo — speak with AI</span>
+        <p class="tts-warning">
+          ⚠️ For testing only — paste your key to try TTS directly from the browser.<br>
+          Never ship API keys in frontend code. Use a backend proxy in production.
+        </p>
+        <div class="tts-row">
+          <label class="tts-field-label">Provider</label>
+          <select :value="ttsProvider" @change="onTtsProviderChange" class="tts-input">
+            <option value="openai">OpenAI TTS</option>
+            <option value="elevenlabs">ElevenLabs</option>
+          </select>
+        </div>
+        <div class="tts-row">
+          <label class="tts-field-label">API Key</label>
+          <input type="password" :value="ttsApiKey" @input="ttsApiKey = ($event.target as HTMLInputElement).value"
+            :placeholder="ttsProvider === 'openai' ? 'sk-…' : 'Your ElevenLabs API key'"
+            class="tts-input" autocomplete="off" />
+        </div>
+        <div class="tts-row">
+          <label class="tts-field-label">Voice</label>
+          <select v-if="ttsProvider === 'openai'" :value="ttsVoice" @change="ttsVoice = ($event.target as HTMLSelectElement).value" class="tts-input">
+            <option v-for="v in ['alloy','echo','fable','nova','onyx','shimmer']" :key="v" :value="v">{{ v }}</option>
+          </select>
+          <input v-else type="text" :value="ttsVoice" @input="ttsVoice = ($event.target as HTMLInputElement).value"
+            placeholder="Voice ID (e.g. 21m00Tcm4TlvDq8ikWAM)" class="tts-input" />
+        </div>
+        <textarea :value="ttsText" @input="ttsText = ($event.target as HTMLTextAreaElement).value"
+          placeholder="Type something for the avatar to say…" class="tts-textarea" />
+        <button @click="handleSpeak" :disabled="ttsBusy" class="tts-speak-btn">🔊 Speak</button>
+        <div class="tts-status" :style="{ color: ttsStatusColor }">{{ ttsStatus }}</div>
+      </div>
+
     </div>
   </div>
 
@@ -395,4 +493,38 @@ input[type="color"] {
 
 #log { font-size: 0.75rem; color: #555; font-family: monospace; height: 1.2rem; transition: color 0.3s; }
 #log.active { color: #a78bfa; }
+
+.tts-panel {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(96,165,250,0.25); border-radius: 12px;
+  background: rgba(96,165,250,0.04); width: 100%;
+}
+.tts-label { color: #60a5fa; }
+.tts-warning {
+  font-size: 0.68rem; color: #f59e0b;
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 6px; padding: 0.4rem 0.6rem; text-align: center; line-height: 1.4;
+}
+.tts-row { display: flex; gap: 0.5rem; align-items: center; width: 100%; flex-wrap: wrap; }
+.tts-field-label { font-size: 0.72rem; color: #888; min-width: 4.5rem; text-align: right; }
+.tts-input {
+  flex: 1; min-width: 0; padding: 0.35rem 0.55rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.78rem;
+}
+.tts-input option { background: #1a1a3e; }
+.tts-textarea {
+  width: 100%; padding: 0.45rem 0.6rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.82rem;
+  resize: vertical; min-height: 56px; font-family: inherit;
+}
+.tts-speak-btn {
+  border: 1px solid rgba(96,165,250,0.4) !important;
+  background: rgba(96,165,250,0.1) !important;
+  color: #93c5fd !important; width: 100%; font-size: 0.85rem; padding: 0.55rem;
+}
+.tts-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.tts-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }
 </style>
