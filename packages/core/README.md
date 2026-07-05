@@ -8,6 +8,10 @@ Lightweight animated 3D avatar SDK for any web application.
 - **AI-agnostic** — works standalone or with any LLM/TTS provider
 - **< 5 min** to integrate
 
+**[Live Demo →](https://mymosdk.meshicode.com)**
+
+---
+
 ## How it works
 
 The SDK renders an animated 3D avatar as a fixed floating widget that mounts itself directly to `document.body`. You create one `Avatar` instance and control everything through its chainable API — no framework bindings required unless you want them.
