@@ -7,6 +7,10 @@ dist
 .next/
 out/
 
+# Nuxt
+.nuxt/
+.output/
+
 # Package manager
 node_modules
 .pnpm-store
@@ -48,4 +52,4 @@ docs/api/
 *.glb
 *.gltf
 *.vrm
-examples/*/public/*.mp3
+*.mp3

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP: allow inline scripts and the SDK's blob/data URLs -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" />
+    <title>Mymo Avatar — Electron</title>
+    <style>
+      body { font-family: sans-serif; padding: 2rem; }
+      .controls { display: flex; gap: 1rem; margin-top: 1rem; }
+      button { padding: 0.5rem 1rem; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <h1>Mymo Avatar — Electron Example</h1>
+    <div class="controls">
+      <button id="btn-wave">Wave</button>
+      <button id="btn-smile">Smile</button>
+      <button id="btn-talk">Talk (2s)</button>
+    </div>
+
+    <script type="module">
+      import { Avatar } from "../../packages/core/src/index.js"
+
+      const avatar = new Avatar({ model: "maya", position: "bottom-right", size: 180 })
+
+      avatar.on("loaded", () => console.log("Avatar loaded"))
+      avatar.on("error",  (e) => console.error("Avatar error:", e))
+
+      document.getElementById("btn-wave").addEventListener("click", () => avatar.wave())
+      document.getElementById("btn-smile").addEventListener("click", () => avatar.smile())
+      document.getElementById("btn-talk").addEventListener("click", () => {
+        avatar.startTalking()
+        setTimeout(() => avatar.stopTalking(), 2000)
+      })
+    </script>
+  </body>
+</html>

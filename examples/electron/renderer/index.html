@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mymo Avatar — Electron</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1117 100%);
+        min-height: 100vh;
+        color: #e0e0ff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #a78bfa, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle { font-size: 0.9rem; color: #888; margin-top: -1rem; }
+
+      .controls {
+        display: flex; flex-direction: column; gap: 1rem;
+        align-items: center; width: 100%; max-width: 680px;
+      }
+
+      .group { display: flex; flex-direction: column; gap: 0.4rem; align-items: center; width: 100%; }
+      .group-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #666; }
+      .btn-row { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+
+      button {
+        padding: 0.45rem 0.9rem;
+        border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 8px;
+        background: rgba(167, 139, 250, 0.08); color: #c4b5fd;
+        font-size: 0.8rem; cursor: pointer; transition: all 0.15s ease;
+      }
+      button:hover { background: rgba(167, 139, 250, 0.2); border-color: rgba(167, 139, 250, 0.6); color: #fff; }
+      button:active { transform: scale(0.96); }
+      button.active { background: rgba(167, 139, 250, 0.3); border-color: rgba(167, 139, 250, 0.9); color: #fff; }
+
+      .divider { width: 100%; border: none; border-top: 1px solid rgba(167, 139, 250, 0.1); }
+
+      .inline-groups { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; width: 100%; }
+      .inline-groups .group { width: auto; align-items: center; }
+
+      .config-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
+      .config-box {
+        display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem;
+        border: 1px solid rgba(167, 139, 250, 0.15); border-radius: 10px;
+        background: rgba(167, 139, 250, 0.04);
+      }
+      .config-box .group-label { align-self: center; }
+
+      .slider-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #aaa; width: 100%; }
+      .slider-row label { min-width: 4rem; text-align: right; color: #888; }
+      .slider-row input[type="range"] { flex: 1; accent-color: #a78bfa; cursor: pointer; }
+      .slider-row .val { min-width: 2.5rem; font-family: monospace; color: #c4b5fd; }
+
+      .color-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.75rem; color: #888; }
+      .color-row label { font-size: 0.72rem; color: #888; }
+      input[type="color"] {
+        width: 2.2rem; height: 1.5rem; cursor: pointer;
+        border: 1px solid rgba(167,139,250,0.3); border-radius: 4px;
+        background: none; padding: 1px;
+      }
+
+      #log { font-size: 0.75rem; color: #555; font-family: monospace; height: 1.2rem; transition: color 0.3s; }
+      #log.active { color: #a78bfa; }
+    </style>
+  </head>
+  <body>
+    <h1>Mymo Avatar</h1>
+    <p class="subtitle">SDK Demo — Electron</p>
+
+    <div class="controls">
+
+      <div class="group">
+        <span class="group-label">Expressions</span>
+        <div class="btn-row">
+          <button data-action="smile">smile</button>
+          <button data-action="happy">happy</button>
+          <button data-action="sad">sad</button>
+          <button data-action="angry">angry</button>
+          <button data-action="surprised">surprised</button>
+          <button data-action="thinking">thinking</button>
+          <button data-action="confused">confused</button>
+          <button data-action="sleep">sleep</button>
+          <button data-action="idle">idle</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="group">
+        <span class="group-label">Gestures</span>
+        <div class="btn-row">
+          <button data-action="wave">wave</button>
+          <button data-action="nod">nod</button>
+          <button data-action="yes">yes</button>
+          <button data-action="no">no</button>
+          <button data-action="shakeHead">shakeHead</button>
+          <button data-action="clap">clap</button>
+          <button data-action="jump">jump</button>
+          <button data-action="dance">dance</button>
+          <button data-action="thumbsUp">thumbsUp</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="group">
+        <span class="group-label">States</span>
+        <div class="btn-row">
+          <button data-action="loading">loading</button>
+          <button data-action="success">success</button>
+          <button data-action="error">error</button>
+          <button data-action="warning">warning</button>
+          <button data-action="listening">listening</button>
+          <button data-action="typing">typing</button>
+          <button data-action="processing">processing</button>
+          <button data-action="complete">complete</button>
+          <button data-action="clearState">clear</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="inline-groups">
+        <div class="group">
+          <span class="group-label">Look</span>
+          <div class="btn-row">
+            <button data-action="lookAtMouse">follow mouse</button>
+            <button data-action="lookForward">look forward</button>
+            <button data-action="randomLook">random look</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">Speech</span>
+          <div class="btn-row">
+            <button data-action="talk">talk</button>
+            <button data-action="stopTalking">stop</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <span class="group-label">Position</span>
+          <div class="btn-row">
+            <button data-action="pos-bottom-right">bottom-right</button>
+            <button data-action="pos-bottom-left">bottom-left</button>
+            <button data-action="pos-top-right">top-right</button>
+            <button data-action="pos-top-left">top-left</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="group">
+        <span class="group-label">Size</span>
+        <div class="slider-row" style="max-width:340px; width:100%;">
+          <label>px</label>
+          <input type="range" id="size-slider" min="80" max="600" step="10" value="400">
+          <span class="val" id="size-val">400</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="config-panel">
+
+        <div class="config-box">
+          <span class="group-label">Framing — <span id="fc-mode-label">full</span></span>
+          <div class="btn-row">
+            <button data-action="frame-full" data-framing="full">full</button>
+            <button data-action="frame-half" data-framing="half">half</button>
+            <button data-action="frame-bust" data-framing="bust">bust</button>
+            <button data-action="frame-face" data-framing="face">face</button>
+          </div>
+          <div class="slider-row">
+            <label>from</label>
+            <input type="range" id="fc-from" min="0" max="1" step="0.01">
+            <span class="val" id="fc-from-val">0.00</span>
+          </div>
+          <div class="slider-row">
+            <label>lookBias</label>
+            <input type="range" id="fc-bias" min="0" max="1" step="0.01">
+            <span class="val" id="fc-bias-val">0.50</span>
+          </div>
+        </div>
+
+        <div class="config-box">
+          <span class="group-label">Theme</span>
+          <div class="btn-row">
+            <button data-action="theme-light" data-theme="light">light</button>
+            <button data-action="theme-dark"  data-theme="dark">dark</button>
+            <button data-action="theme-transparent" data-theme="transparent">transparent</button>
+          </div>
+          <div id="tc-config-panel">
+            <div class="color-row">
+              <label>center</label><input type="color" id="tc-color1">
+              <label>edge</label>  <input type="color" id="tc-color2">
+            </div>
+            <div class="slider-row">
+              <label>shadow</label>
+              <input type="range" id="tc-shadow" min="0" max="1" step="0.05">
+              <span class="val" id="tc-shadow-val">0.50</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="amp-wrap" style="display:none; align-items:center; gap:0.5rem; width:260px;">
+      <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
+      <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
+        <div id="amp-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#a78bfa,#60a5fa); border-radius:3px; transition:width 0.05s ease;"></div>
+      </div>
+    </div>
+
+    <div id="log">Initializing avatar...</div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

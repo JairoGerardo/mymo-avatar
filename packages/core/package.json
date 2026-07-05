@@ -30,6 +30,16 @@
       "import": "./dist/vue.js",
       "require": "./dist/vue.cjs",
       "types": "./dist/vue/index.d.ts"
+    },
+    "./svelte": {
+      "import": "./dist/svelte.js",
+      "require": "./dist/svelte.cjs",
+      "types": "./dist/svelte/index.d.ts"
+    },
+    "./angular": {
+      "import": "./dist/angular.js",
+      "require": "./dist/angular.cjs",
+      "types": "./dist/angular/index.d.ts"
     }
   },
   "repository": {
@@ -54,13 +64,21 @@
   "peerDependencies": {
     "three": ">=0.165.0",
     "react": ">=18.0.0",
-    "vue": ">=3.0.0"
+    "vue": ">=3.0.0",
+    "svelte": ">=4.0.0",
+    "@angular/core": ">=17.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "@angular/core": {
       "optional": true
     }
   },

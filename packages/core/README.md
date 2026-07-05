@@ -591,6 +591,238 @@ export default function Home() {
 
 ---
 
+### Nuxt 3
+
+```bash
+npm install @mymosdk/avatar three
+```
+
+The avatar uses WebGL and `document.body`, so it must run client-side only. Wrap any component that uses the SDK with `<ClientOnly>`.
+
+**Plugin** — create `plugins/avatar.client.ts` (the `.client.ts` suffix makes Nuxt skip it on the server):
+
+```ts
+// plugins/avatar.client.ts
+export default defineNuxtPlugin(() => {
+  // Client-only setup. Import Avatar here for a global instance,
+  // or use it directly inside <ClientOnly> components.
+})
+```
+
+**Page / component**
+
+```vue
+<!-- pages/index.vue -->
+<template>
+  <ClientOnly>
+    <AvatarDemo />
+  </ClientOnly>
+</template>
+```
+
+```vue
+<!-- components/AvatarDemo.vue -->
+<script setup lang="ts">
+import { onMounted, onUnmounted } from "vue"
+import { Avatar } from "@mymosdk/avatar"
+
+let avatar: Avatar
+
+onMounted(() => {
+  avatar = new Avatar({ model: "https://...", position: "bottom-right", framing: "bust" })
+  avatar.on("click", () => avatar.wave())
+})
+
+onUnmounted(() => avatar?.destroy())
+</script>
+```
+
+> The `<ClientOnly>` wrapper is the only Nuxt-specific step — the rest is standard Vue 3.
+
+---
+
+### Svelte
+
+```bash
+npm install @mymosdk/avatar three
+```
+
+**Composable**
+
+```svelte
+<script lang="ts">
+  import { useAvatar } from "@mymosdk/avatar/svelte"
+
+  const avatar = useAvatar({
+    model: "https://...",
+    position: "bottom-right",
+    framing: "bust",
+    idle: true,
+    blink: true,
+  })
+  // avatar is a Svelte Writable<Avatar | null>
+</script>
+
+<button on:click={() => $avatar?.wave()}>Wave</button>
+```
+
+`useAvatar` creates the avatar in `onMount` and calls `destroy()` in `onDestroy` via the returned cleanup function. Access the instance with the `$` store shorthand.
+
+**Direct usage** (without the composable)
+
+```svelte
+<script lang="ts">
+  import { onMount, onDestroy } from "svelte"
+  import { Avatar } from "@mymosdk/avatar"
+
+  let avatar: Avatar
+
+  onMount(() => {
+    avatar = new Avatar({ model: "https://...", position: "bottom-right", framing: "bust" })
+  })
+
+  onDestroy(() => avatar?.destroy())
+</script>
+
+<button on:click={() => avatar?.smile()}>Smile</button>
+```
+
+---
+
+### Electron
+
+```bash
+npm install @mymosdk/avatar three
+```
+
+The avatar runs entirely in the **renderer process** — no main-process changes are needed beyond the standard security settings.
+
+**Main process** (`main.js`)
+
+```js
+const { app, BrowserWindow } = require("electron")
+const path = require("path")
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    webPreferences: {
+      contextIsolation: true,   // required
+      nodeIntegration: false,   // required
+      preload: path.join(__dirname, "preload.js"),
+    },
+  })
+  win.loadFile("dist/renderer/index.html")
+}
+
+app.whenReady().then(createWindow)
+app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit() })
+```
+
+**Renderer process** (`renderer/main.ts`)
+
+```ts
+import { Avatar } from "@mymosdk/avatar"
+
+const avatar = new Avatar({
+  model: "/Maya.vrm",   // served from the app's public/ folder
+  position: "bottom-right",
+  framing: "bust",
+  theme: "dark",
+  idle: true,
+  blink: true,
+})
+
+avatar.on("click", () => avatar.wave())
+```
+
+> Electron's renderer is a full browser context — all Web Audio and WebGL APIs are available. No special guards needed.
+
+---
+
+### Angular
+
+```bash
+npm install @mymosdk/avatar three
+```
+
+Import from `@mymosdk/avatar/angular`. The package ships a **standalone directive** (`AvatarDirective`) and an `AvatarModule` for NgModule-based projects.
+
+**Standalone component**
+
+```ts
+// app.component.ts
+import { Component, ViewChild } from "@angular/core"
+import { AvatarDirective } from "@mymosdk/avatar/angular"
+
+@Component({
+  standalone: true,
+  imports: [AvatarDirective],
+  template: `
+    <div
+      mymoAvatar
+      model="https://..."
+      position="bottom-right"
+      framing="bust"
+      theme="dark"
+      [idle]="true"
+      [blink]="true"
+      [draggable]="true"
+      (avatarLoaded)="onLoaded()"
+      (avatarClicked)="onClicked()"
+    ></div>
+    <button (click)="wave()">Wave</button>
+  `,
+})
+export class AppComponent {
+  @ViewChild(AvatarDirective) avatarDir!: AvatarDirective
+
+  onLoaded()  { console.log("avatar ready") }
+  onClicked() { this.avatarDir.avatar?.wave() }
+  wave()      { this.avatarDir.avatar?.wave() }
+}
+```
+
+**NgModule-based project**
+
+```ts
+// app.module.ts
+import { NgModule } from "@angular/core"
+import { AvatarModule } from "@mymosdk/avatar/angular"
+
+@NgModule({ imports: [AvatarModule], ... })
+export class AppModule {}
+```
+
+**Available inputs**
+
+| Input | Type |
+|---|---|
+| `model` | `string` |
+| `position` | `AvatarPosition` |
+| `size` | `number` |
+| `theme` | `AvatarTheme` |
+| `framing` | `AvatarFraming` |
+| `draggable` | `boolean` |
+| `idle` | `boolean` |
+| `blink` | `boolean` |
+| `lipSync` | `boolean` |
+| `followMouse` | `boolean` |
+| `zIndex` | `number` |
+
+**Available outputs**
+
+| Output | Payload |
+|---|---|
+| `avatarLoaded` | `void` |
+| `avatarClicked` | `void` |
+| `avatarError` | `{ message: string }` |
+
+`ngOnChanges` handles `model`, `position`, `size`, `theme`, and `framing` reactively — update the input and the avatar updates automatically. Access the full imperative API via `@ViewChild(AvatarDirective).avatar`.
+
+---
+
 ### CDN (UMD)
 
 No build step required:

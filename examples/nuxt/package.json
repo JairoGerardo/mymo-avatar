@@ -1,0 +1,16 @@
+{
+  "name": "@mymo/example-nuxt",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@mymosdk/avatar": "workspace:*",
+    "nuxt": "^3.12.0",
+    "three": "^0.165.0",
+    "vue": "^3.4.0"
+  }
+}

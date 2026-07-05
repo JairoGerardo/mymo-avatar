@@ -1,0 +1,24 @@
+<template>
+  <main>
+    <ClientOnly>
+      <AvatarDemo />
+    </ClientOnly>
+  </main>
+</template>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1117 100%);
+  min-height: 100vh;
+  color: #e0e0ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+</style>
