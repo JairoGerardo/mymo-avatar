@@ -99,8 +99,12 @@ export class Avatar {
   }
 
   private _boundMouseLook = (e: MouseEvent) => {
-    const dx = (e.clientX / window.innerWidth) * 2 - 1
-    const dy = (e.clientY / window.innerHeight) * 2 - 1
+    const rect = this.renderer.getContainer().getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    const maxDist = Math.max(window.innerWidth, window.innerHeight)
+    const dx = (e.clientX - cx) / maxDist * 2
+    const dy = (e.clientY - cy) / maxDist * 2
     this.animation.lookAt(dx, dy)
   }
 
