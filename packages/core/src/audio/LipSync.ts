@@ -49,6 +49,7 @@ export class LipSync {
 
   // Auto lip sync: reads amplitude from AudioEngine every frame via RAF
   startAutoSync(): void {
+    if (typeof requestAnimationFrame === "undefined") return
     this.stopAutoSync()
     const loop = () => {
       const amp = this.audioEngine.getAmplitude()
@@ -60,7 +61,7 @@ export class LipSync {
   }
 
   stopAutoSync(): void {
-    cancelAnimationFrame(this.rafId)
+    if (typeof cancelAnimationFrame !== "undefined") cancelAnimationFrame(this.rafId)
     this.rafId = 0
     this.onMouth(0)
   }

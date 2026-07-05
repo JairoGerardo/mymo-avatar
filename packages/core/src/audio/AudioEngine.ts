@@ -14,6 +14,7 @@ export class AudioEngine {
   }
 
   async play(audio: AudioBuffer | ArrayBuffer | string): Promise<void> {
+    if (typeof AudioContext === "undefined") return
     const ctx = this._ctx()
 
     // Resume if browser suspended the context (autoplay policy)

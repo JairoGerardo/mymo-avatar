@@ -51,6 +51,7 @@ export class Renderer {
   }
 
   setup(options: Required<AvatarOptions>): void {
+    if (typeof window === "undefined") return
     this.webgl = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this.webgl.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.webgl.setSize(options.size, options.size)
@@ -312,9 +313,10 @@ export class Renderer {
   }
 
   dispose(): void {
+    if (typeof window === "undefined") return
     cancelAnimationFrame(this.rafId)
     this.tickCallbacks = []
-    this.webgl.dispose()
-    this.container.remove()
+    this.webgl?.dispose()
+    this.container?.remove()
   }
 }

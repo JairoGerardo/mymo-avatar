@@ -71,7 +71,7 @@ export class Avatar {
     this.renderer.setup(this.options)
     this.renderer.addTickCallback((delta) => this.animation.update(delta))
 
-    this._bindContainerEvents()
+    if (typeof window !== "undefined") this._bindContainerEvents()
     this._initialize().catch((err) => console.error("[mymo-avatar]", err))
   }
 
@@ -109,6 +109,7 @@ export class Avatar {
   }
 
   private _bindMouseLook(): void {
+    if (typeof window === "undefined") return
     window.addEventListener("mousemove", this._boundMouseLook)
   }
 
@@ -130,7 +131,7 @@ export class Avatar {
   }
 
   destroy(): void {
-    window.removeEventListener("mousemove", this._boundMouseLook)
+    if (typeof window !== "undefined") window.removeEventListener("mousemove", this._boundMouseLook)
     this.animation.stopLook()
     this.animation.dispose()
     this.audio.dispose()
@@ -224,7 +225,7 @@ export class Avatar {
   }
 
   lookAt(x: number, y: number): this {
-    // x/y in screen pixels → normalize to -1..1
+    if (typeof window === "undefined") return this
     const dx = (x / window.innerWidth) * 2 - 1
     const dy = (y / window.innerHeight) * 2 - 1
     this.animation.lookAt(dx, dy)
@@ -232,7 +233,7 @@ export class Avatar {
   }
 
   lookForward(): this {
-    window.removeEventListener("mousemove", this._boundMouseLook)
+    if (typeof window !== "undefined") window.removeEventListener("mousemove", this._boundMouseLook)
     this.animation.lookForward()
     return this
   }
