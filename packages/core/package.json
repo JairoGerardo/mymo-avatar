@@ -36,7 +36,7 @@
     "type": "git",
     "url": "https://github.com/JairoGerardo/mymo-avatar.git"
   },
-  "homepage": "https://github.com/JairoGerardo/mymo-avatar#readme",
+  "homepage": "https://mymosdk.meshicode.com",
   "files": [
     "dist",
     "README.md"
