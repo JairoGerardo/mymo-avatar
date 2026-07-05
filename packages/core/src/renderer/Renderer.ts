@@ -167,8 +167,12 @@ export class Renderer {
     let ox = 0
     let oy = 0
 
+    // Prevent browser from hijacking touch events for scroll/zoom
+    this.container.style.touchAction = "none"
+
     this.container.addEventListener("pointerdown", (e) => {
       dragging = true
+      this.container.setPointerCapture(e.pointerId)
       const rect = this.container.getBoundingClientRect()
       ox = e.clientX - rect.left
       oy = e.clientY - rect.top
@@ -176,7 +180,7 @@ export class Renderer {
       e.preventDefault()
     })
 
-    window.addEventListener("pointermove", (e) => {
+    this.container.addEventListener("pointermove", (e) => {
       if (!dragging) return
       const s = this.container.style
       s.top = s.bottom = s.left = s.right = ""
@@ -184,7 +188,11 @@ export class Renderer {
       s.top = `${e.clientY - oy}px`
     })
 
-    window.addEventListener("pointerup", () => {
+    this.container.addEventListener("pointerup", () => {
+      dragging = false
+    })
+
+    this.container.addEventListener("pointercancel", () => {
       dragging = false
     })
   }
