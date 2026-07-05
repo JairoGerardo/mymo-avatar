@@ -1,5 +1,6 @@
 {
   "name": "mymo-avatar-monorepo",
+  "type": "module",
   "private": true,
   "version": "0.0.0",
   "description": "Mymo Avatar — monorepo root",

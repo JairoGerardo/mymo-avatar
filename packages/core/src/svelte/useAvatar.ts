@@ -1,4 +1,4 @@
-import { onMount, onDestroy } from "svelte"
+import { onMount } from "svelte"
 import { writable, type Writable } from "svelte/store"
 import { Avatar } from "../index.js"
 import type { AvatarOptions } from "../index.js"

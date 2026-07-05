@@ -3,7 +3,7 @@ import {
   type OnInit, type OnDestroy, type OnChanges, type SimpleChanges,
 } from "@angular/core"
 import { Avatar } from "../index.js"
-import type { AvatarOptions, AvatarEvent } from "../index.js"
+import type { AvatarOptions } from "../index.js"
 
 /**
  * Angular standalone directive that manages an Avatar instance.
