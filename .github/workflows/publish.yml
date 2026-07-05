@@ -33,5 +33,3 @@ jobs:
 
       - name: Publish
         run: pnpm --filter @mymosdk/avatar publish --no-git-checks --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
