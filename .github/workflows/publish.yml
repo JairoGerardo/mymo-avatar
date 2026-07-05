@@ -31,11 +31,6 @@ jobs:
       - name: Build
         run: pnpm --filter @mymosdk/avatar build
 
-      - name: Verify npm auth
-        run: npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish
         run: npm publish --provenance --access public
         working-directory: packages/core
