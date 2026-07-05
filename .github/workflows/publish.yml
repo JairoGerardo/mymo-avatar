@@ -32,4 +32,5 @@ jobs:
         run: pnpm --filter @mymosdk/avatar build
 
       - name: Publish
-        run: pnpm --filter @mymosdk/avatar publish --no-git-checks --provenance --access public
+        run: npm publish --provenance --access public
+        working-directory: packages/core
