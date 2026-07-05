@@ -309,8 +309,10 @@ export class Avatar {
     this.animation.play(animation)
 
     const el = this.renderer.getContainer()
-    el.dataset["state"] = state
-    el.style.setProperty("--ring-color", ring ? (STATE_RING_COLORS[ring] ?? "transparent") : "transparent")
+    if (el) {
+      el.dataset["state"] = state
+      el.style.setProperty("--ring-color", ring ? (STATE_RING_COLORS[ring] ?? "transparent") : "transparent")
+    }
 
     this.events.emit("animationStart", { state })
     return this
@@ -329,8 +331,10 @@ export class Avatar {
     this.animation.setExpression("idle")
     this.animation.stop()
     const el = this.renderer.getContainer()
-    el.dataset["state"] = ""
-    el.style.setProperty("--ring-color", "transparent")
+    if (el) {
+      el.dataset["state"] = ""
+      el.style.setProperty("--ring-color", "transparent")
+    }
     this.events.emit("animationEnd")
     return this
   }
