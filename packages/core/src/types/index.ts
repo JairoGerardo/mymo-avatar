@@ -35,6 +35,7 @@ export type AvatarEvent =
   | "speechStart"
   | "speechEnd"
   | "modelLoaded"
+  | "error"
 
 export type AvatarEventCallback = (event: AvatarEvent, data?: unknown) => void
 

@@ -44,14 +44,36 @@ export class Renderer {
   private modelFraming: Record<AvatarFraming, FramingConfig> | null = null
   private userSliceConfig: FramingSliceConfig = {}
   private userThemeConfig: ThemeConfig = {}
+  private _webglAvailable = true
+
+  get webglAvailable(): boolean { return this._webglAvailable }
 
   constructor() {
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
   }
 
+  private _isWebGLSupported(): boolean {
+    try {
+      const canvas = document.createElement("canvas")
+      return !!(
+        window.WebGLRenderingContext &&
+        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      )
+    } catch {
+      return false
+    }
+  }
+
   setup(options: Required<AvatarOptions>): void {
     if (typeof window === "undefined") return
+
+    if (!this._isWebGLSupported()) {
+      this._webglAvailable = false
+      this._createFallback(options)
+      return
+    }
+
     this.webgl = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     this.webgl.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.webgl.setSize(options.size, options.size)
@@ -67,6 +89,41 @@ export class Renderer {
     if (options.framingConfig) this.userSliceConfig = options.framingConfig
     this._applyFraming(options.framing)
     this._startLoop()
+  }
+
+  private _createFallback(options: Required<AvatarOptions>): void {
+    this.container = document.createElement("div")
+    const s = this.container.style
+    s.position = "fixed"
+    s.width = `${options.size}px`
+    s.height = `${options.size}px`
+    s.zIndex = String(options.zIndex)
+    s.overflow = "hidden"
+    s.borderRadius = "50%"
+    s.cursor = "default"
+    s.userSelect = "none"
+    s.boxSizing = "border-box"
+    s.display = "flex"
+    s.alignItems = "center"
+    s.justifyContent = "center"
+    s.flexDirection = "column"
+    s.gap = "6px"
+
+    this.currentTheme = options.theme
+    this._applyTheme(options.theme, options.size)
+    this._applyPosition(options.position)
+
+    const icon = document.createElement("span")
+    icon.textContent = "🤖"
+    icon.style.cssText = `font-size:${Math.round(options.size * 0.35)}px; opacity:0.45; line-height:1`
+
+    const label = document.createElement("span")
+    label.textContent = "WebGL unavailable"
+    label.style.cssText = `font-size:${Math.max(9, Math.round(options.size * 0.07))}px; color:rgba(255,255,255,0.35); font-family:system-ui,sans-serif; text-align:center; padding:0 8px`
+
+    this.container.appendChild(icon)
+    this.container.appendChild(label)
+    document.body.appendChild(this.container)
   }
 
   private _setupLights(): void {
@@ -298,7 +355,7 @@ export class Renderer {
   setSize(px: number): void {
     this.container.style.width = `${px}px`
     this.container.style.height = `${px}px`
-    this.webgl.setSize(px, px)
+    this.webgl?.setSize(px, px)
   }
 
   moveTo(x: number, y: number): void {

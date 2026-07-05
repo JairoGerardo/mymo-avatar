@@ -72,6 +72,12 @@ export class Avatar {
     this.renderer.addTickCallback((delta) => this.animation.update(delta))
 
     if (typeof window !== "undefined") this._bindContainerEvents()
+
+    if (!this.renderer.webglAvailable) {
+      this.events.emit("error", { message: "WebGL is not supported in this browser. The avatar cannot be displayed." })
+      return
+    }
+
     this._initialize().catch((err) => console.error("[mymo-avatar]", err))
   }
 

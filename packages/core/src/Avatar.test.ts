@@ -6,6 +6,7 @@ vi.mock("./renderer/Renderer.js", () => {
   const mockContainer = document.createElement("div")
   const makeRenderer = () => ({
     setup: vi.fn(),
+    webglAvailable: true,
     addTickCallback: vi.fn(),
     setModel: vi.fn(),
     getContainer: vi.fn().mockReturnValue(mockContainer),
