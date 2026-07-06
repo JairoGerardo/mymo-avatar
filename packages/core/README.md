@@ -335,38 +335,156 @@ avatar.destroy()  // removes widget from DOM, stops all loops
 
 ## Plugins
 
-### TTS integration (manual)
+### Official TTS plugins
 
-The SDK has no built-in TTS provider — call any TTS service from your **backend**, pass the audio to `avatar.talk()`, and lip sync works automatically.
+| Package | Provider | Install |
+|---|---|---|
+| `@mymosdk/plugin-openai` | OpenAI TTS | `npm i @mymosdk/plugin-openai openai` |
+| `@mymosdk/plugin-elevenlabs` | ElevenLabs | `npm i @mymosdk/plugin-elevenlabs` |
+| `@mymosdk/plugin-anthropic` | Anthropic (text streaming + optional TTS) | `npm i @mymosdk/plugin-anthropic @anthropic-ai/sdk` |
 
-Example with ElevenLabs:
+Each plugin calls `avatar.talk()` internally, so lip sync works automatically.
+
+---
+
+### ⚠️ Security — API keys
+
+> **Never put API keys in browser code.** Any key you pass to a plugin in a frontend bundle is visible to every user via DevTools → Network or by reading the JavaScript source.
+
+The plugins support two modes:
+
+| Mode | Option | When to use |
+|---|---|---|
+| **Proxy (recommended)** | `proxyUrl: "/api/tts"` | Browser / any public-facing app |
+| **Direct** | `apiKey: "sk-..."` | Node.js, Electron, server-side scripts only |
+
+If you pass `apiKey` in a browser environment, the plugin logs a visible `console.warn` pointing here. The call still works, but **you are responsible for the exposure** — the SDK only warns, it does not block.
+
+**Browser-safe setup (recommended):**
 
 ```ts
-// Your backend endpoint (Express, Next.js API Route, Edge Function, etc.)
-// POST /api/speak  { text: string }  →  returns audio/mpeg
+// ✅ Key stays on your server
+import { OpenAITTSPlugin } from "@mymosdk/plugin-openai"
 
-// Frontend
-async function speak(text: string) {
-  avatar.setState("loading")
+const tts = new OpenAITTSPlugin({ proxyUrl: "/api/tts/openai" })
+avatar.use(tts)
+await tts.speak("Hello!")
+```
 
-  const res = await fetch("/api/speak", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+Your backend endpoint receives `{ text, voice, speed }` and forwards it to OpenAI with the key:
+
+```ts
+// POST /api/tts/openai  (Express / Next.js API Route / Edge Function)
+import OpenAI from "openai"
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+export async function POST(req: Request) {
+  const { text, voice = "alloy", speed = 1.0 } = await req.json()
+  const audio = await client.audio.speech.create({ model: "tts-1", voice, input: text, speed })
+  return new Response(await audio.arrayBuffer(), {
+    headers: { "Content-Type": "audio/mpeg" },
   })
-
-  if (!res.ok) {
-    avatar.setState("error")
-    return
-  }
-
-  const audio = await res.arrayBuffer()
-  avatar.clearState()
-  await avatar.talk(audio)  // lip sync kicks in automatically
 }
 ```
 
-Keeping the TTS call on the backend means your API key is never exposed to the browser. The pattern is the same for any provider: OpenAI TTS, Azure Speech, Google Cloud TTS, etc.
+**Direct mode — Node.js / Electron only:**
+
+```ts
+// ✅ Safe only when this code never reaches the browser
+import { ElevenLabsTTSPlugin } from "@mymosdk/plugin-elevenlabs"
+
+const tts = new ElevenLabsTTSPlugin({
+  apiKey: process.env.ELEVENLABS_API_KEY,
+  voiceId: "21m00Tcm4TlvDq8ikWAM",
+})
+avatar.use(tts)
+await tts.speak("Hello!")
+```
+
+---
+
+### OpenAI TTS plugin
+
+```ts
+import { OpenAITTSPlugin } from "@mymosdk/plugin-openai"
+
+const tts = new OpenAITTSPlugin({
+  proxyUrl: "/api/tts/openai", // or apiKey (Node/Electron only)
+  voice: "nova",               // alloy | echo | fable | onyx | nova | shimmer
+  model: "tts-1",              // tts-1 | tts-1-hd
+  speed: 1.0,
+})
+
+avatar.use(tts)
+await tts.speak("Hello from OpenAI!")
+tts.stop()  // stops playback immediately
+```
+
+---
+
+### ElevenLabs TTS plugin
+
+```ts
+import { ElevenLabsTTSPlugin } from "@mymosdk/plugin-elevenlabs"
+
+const tts = new ElevenLabsTTSPlugin({
+  proxyUrl: "/api/tts/elevenlabs", // or apiKey (Node/Electron only)
+  voiceId: "21m00Tcm4TlvDq8ikWAM", // Rachel — see elevenlabs.io/voice-library
+  modelId: "eleven_multilingual_v2",
+  stability: 0.5,
+  similarityBoost: 0.75,
+})
+
+avatar.use(tts)
+await tts.speak("Hello from ElevenLabs!")
+```
+
+---
+
+### Anthropic plugin (text streaming)
+
+Shows the avatar in `typing` state while Claude streams a response, then optionally speaks it with any TTS plugin.
+
+```ts
+import { AnthropicPlugin } from "@mymosdk/plugin-anthropic"
+import { ElevenLabsTTSPlugin } from "@mymosdk/plugin-elevenlabs"
+
+const tts = new ElevenLabsTTSPlugin({ proxyUrl: "/api/tts/elevenlabs" })
+avatar.use(tts)
+
+const claude = new AnthropicPlugin({
+  proxyUrl: "/api/chat",        // or apiKey (Node/Electron only)
+  model: "claude-sonnet-4-6",
+  systemPrompt: "You are a helpful assistant.",
+  tts,                           // omit if you only want typing animation, no speech
+})
+avatar.use(claude)
+
+const response = await claude.chat("Tell me a joke", [
+  { role: "assistant", content: "Sure! What kind of joke?" },
+])
+console.log(response) // full assistant text
+```
+
+Your proxy endpoint for Anthropic should forward the SSE stream transparently so the plugin can parse `content_block_delta` events.
+
+---
+
+### TTS integration without a plugin
+
+You can also call any TTS service directly and pass the audio to `avatar.talk()` — no plugin needed:
+
+```ts
+const res = await fetch("/api/speak", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: "Hello!" }),
+})
+const audio = await res.arrayBuffer()
+await avatar.talk(audio)  // lip sync kicks in automatically
+```
+
+---
 
 ### Build your own plugin
 
@@ -896,6 +1014,7 @@ import type {
   AvatarEvent,          // "click" | "loaded" | "modelLoaded" | "animationStart" | "animationEnd" | "speechStart" | "speechEnd"
   AvatarState,          // "loading" | "success" | "error" | "warning" | "typing" | "listening" | "processing" | "complete"
   AvatarPlugin,
+  TTSPlugin,
   AvatarApi,
   Expression,           // "smile" | "sad" | "happy" | "angry" | "surprised" | "thinking" | "confused" | "sleep" | "idle"
   Gesture,              // "wave" | "nod" | "yes" | "no" | "shakeHead" | "clap" | "jump" | "dance" | "thumbsUp"

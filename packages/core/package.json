@@ -1,6 +1,6 @@
 {
   "name": "@mymosdk/avatar",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Lightweight animated avatar SDK for any web application",
   "keywords": [
     "avatar",
