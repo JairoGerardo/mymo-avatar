@@ -252,3 +252,30 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
 
 document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
 document.querySelector<HTMLButtonElement>(`button[data-theme="${INITIAL_THEME}"]`)?.classList.add("active")
+
+// ── Debug toggles ────────────────────────────────────────────────────────────
+
+let debugOverlayOn = false
+let debugBonesOn   = false
+let debugAxesOn    = false
+
+document.getElementById("btn-debug-overlay")!.addEventListener("click", (e) => {
+  debugOverlayOn = !debugOverlayOn
+  avatar.debug(debugOverlayOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugOverlayOn)
+  setLog(`avatar.debug(${debugOverlayOn})`, true)
+})
+
+document.getElementById("btn-debug-bones")!.addEventListener("click", (e) => {
+  debugBonesOn = !debugBonesOn
+  avatar.debugBones(debugBonesOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugBonesOn)
+  setLog(`avatar.debugBones(${debugBonesOn})`, true)
+})
+
+document.getElementById("btn-debug-axes")!.addEventListener("click", (e) => {
+  debugAxesOn = !debugAxesOn
+  avatar.debugAxes(debugAxesOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugAxesOn)
+  setLog(`avatar.debugAxes(${debugAxesOn})`, true)
+})

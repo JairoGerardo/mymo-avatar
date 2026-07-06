@@ -71,6 +71,9 @@ const avatar = useAvatar({
 const log          = ref("Initializing…")
 const logActive    = ref(false)
 const talking      = ref(false)
+const debugOverlay = ref(false)
+const debugBones   = ref(false)
+const debugAxes    = ref(false)
 const activeFraming = ref<AvatarFraming>(INITIAL_FRAMING)
 const activeTheme  = ref<AvatarTheme>(INITIAL_THEME)
 const themeMode    = ref<ThemeMode>("dark")
@@ -535,6 +538,16 @@ async function fetchTTSAudio(provider: string, apiKey: string, voice: string, te
         <div class="chat-status" :style="{ color: chatStatusColor }">{{ chatStatus }}</div>
       </div>
 
+    </div>
+
+    <hr class="divider">
+    <div class="group">
+      <span class="group-label">Debug</span>
+      <div class="btn-row">
+        <button :class="['btn', { active: debugOverlay }]" @click="() => { debugOverlay = !debugOverlay; av().debug(debugOverlay) }">🔍 debug overlay</button>
+        <button :class="['btn', { active: debugBones }]"   @click="() => { debugBones   = !debugBones;   av().debugBones(debugBones) }">🦴 debug bones</button>
+        <button :class="['btn', { active: debugAxes }]"    @click="() => { debugAxes    = !debugAxes;    av().debugAxes(debugAxes) }">📐 debug axes</button>
+      </div>
     </div>
 
     <div v-if="talking" class="amp-wrap">

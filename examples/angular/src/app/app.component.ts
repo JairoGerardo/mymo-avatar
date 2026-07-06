@@ -33,6 +33,9 @@ export class AppComponent implements OnInit, OnDestroy {
   logMsg    = "Initializing avatar..."
   logActive = false
   talkingVisible = false
+  debugOverlay = false
+  debugBones   = false
+  debugAxes    = false
   sizeValue = 400
   activeFraming: string = INITIAL_FRAMING
   activeTheme: string   = INITIAL_THEME
@@ -377,6 +380,23 @@ export class AppComponent implements OnInit, OnDestroy {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       this.handleChatSend()
+    }
+  }
+
+  toggleDebug(target: 'overlay' | 'bones' | 'axes'): void {
+    const a = this.avatar
+    if (target === 'overlay') {
+      this.debugOverlay = !this.debugOverlay
+      a.debug(this.debugOverlay)
+      this.setLog(`avatar.debug(${this.debugOverlay})`, true)
+    } else if (target === 'bones') {
+      this.debugBones = !this.debugBones
+      a.debugBones(this.debugBones)
+      this.setLog(`avatar.debugBones(${this.debugBones})`, true)
+    } else {
+      this.debugAxes = !this.debugAxes
+      a.debugAxes(this.debugAxes)
+      this.setLog(`avatar.debugAxes(${this.debugAxes})`, true)
     }
   }
 

@@ -207,6 +207,9 @@ export default function AvatarDemo() {
   const [chatBusy, setChatBusy]               = useState(false)
   const [chatStatus, setChatStatus]           = useState("")
   const [chatStatusColor, setChatStatusColor] = useState("#555")
+  const [debugOverlay, setDebugOverlay] = useState(false)
+  const [debugBones,   setDebugBones]   = useState(false)
+  const [debugAxes,    setDebugAxes]    = useState(false)
 
   const flash = useCallback((msg: string) => {
     setLog(msg)
@@ -611,6 +614,16 @@ export default function AvatarDemo() {
             <button onClick={() => { setChatHistory([]); setChatStatus("") }} style={sChat.clearBtn}>clear</button>
           </div>
           <div style={{ fontSize: "0.72rem", fontFamily: "monospace", textAlign: "center", minHeight: "1rem", color: chatStatusColor }}>{chatStatus}</div>
+        </div>
+
+        <hr style={S.divider} />
+        <div style={S.group}>
+          <span style={S.groupLabel}>Debug</span>
+          <div style={S.btnRow}>
+            <button style={debugOverlay ? S.btnActive : S.btn} onClick={() => { const on = !debugOverlay; setDebugOverlay(on); av().debug(on) }}>🔍 debug overlay</button>
+            <button style={debugBones   ? S.btnActive : S.btn} onClick={() => { const on = !debugBones;   setDebugBones(on);   av().debugBones(on) }}>🦴 debug bones</button>
+            <button style={debugAxes    ? S.btnActive : S.btn} onClick={() => { const on = !debugAxes;    setDebugAxes(on);    av().debugAxes(on) }}>📐 debug axes</button>
+          </div>
         </div>
 
       </div>

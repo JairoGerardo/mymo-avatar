@@ -75,6 +75,7 @@ export interface AvatarOptions {
   followMouse?: boolean
   autoHide?: boolean
   zIndex?: number
+  debug?: boolean
   /** Override per-mode framing slices to fine-tune for your specific model */
   framingConfig?: FramingSliceConfig
   /** Override background/shadow for light and dark themes */

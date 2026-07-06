@@ -116,6 +116,7 @@ avatar.load("https://github.com/user/repo/releases/download/tag/file.vrm")
 | `followMouse` | `boolean` | `false` | Auto-track mouse cursor |
 | `autoHide` | `boolean` | `false` | Hide widget when user scrolls |
 | `zIndex` | `number` | `99999` | CSS z-index of the widget |
+| `debug` | `boolean` | `false` | Enable debug overlay + skeleton helper on startup |
 
 ---
 
@@ -330,6 +331,44 @@ avatar.destroy()  // removes widget from DOM, stops all loops
 ```
 
 > All methods except `destroy()` are chainable.
+
+---
+
+### Debug
+
+Enable at construction time or toggle at runtime:
+
+```ts
+// Option A — on at startup
+const avatar = new Avatar({ model: "...", debug: true })
+
+// Option B — toggle at runtime
+avatar.debug()        // enable
+avatar.debug(false)   // disable
+```
+
+When active, a fixed overlay appears in the top-left corner of the viewport showing:
+
+| Field | Description |
+|---|---|
+| `FPS` | Frames per second (updated every second) |
+| `Expr` | Currently active expression (`smile`, `thinking`, etc.) |
+| `Gest` | Currently active gesture (`wave`, `dance`, etc.) |
+| `Morphs` | Total morph target count loaded from the model |
+
+`debug: true` also activates the skeleton helper automatically (same as calling `debugBones()`).
+
+**Additional debug helpers** — each toggles on/off with repeated calls:
+
+```ts
+avatar.debugBones()          // show/hide Three.js SkeletonHelper (bone lines)
+avatar.debugBones(false)     // hide explicitly
+
+avatar.debugAxes()           // show/hide XYZ axis helper at world origin
+avatar.debugAxes(false)      // hide explicitly
+```
+
+The axes helper renders X (red), Y (green), and Z (blue) lines with labeled sprites at their tips so you can verify model orientation at a glance.
 
 ---
 

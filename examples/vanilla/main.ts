@@ -1,8 +1,5 @@
 import { Avatar } from "@mymosdk/avatar"
 import type { AvatarPosition } from "@mymosdk/avatar"
-import * as THREE from "three"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import { VRMLoaderPlugin, VRMHumanBoneName, type VRM } from "@pixiv/three-vrm"
 
 // Replace with any GLB/VRM URL hosted on a CORS-enabled CDN (e.g. Cloudflare R2,
 // GitHub Pages, or your own server). GitHub Releases URLs don't support CORS
@@ -307,6 +304,33 @@ document.querySelectorAll<HTMLButtonElement>("button[data-action]").forEach((btn
 document.querySelector<HTMLButtonElement>(`button[data-framing="${currentFraming}"]`)?.classList.add("active")
 document.querySelector<HTMLButtonElement>(`button[data-theme="${INITIAL_THEME}"]`)?.classList.add("active")
 
+// ── Debug toggles ────────────────────────────────────────────────────────────
+
+let debugOverlayOn = false
+let debugBonesOn   = false
+
+document.getElementById("btn-debug-overlay")!.addEventListener("click", (e) => {
+  debugOverlayOn = !debugOverlayOn
+  avatar.debug(debugOverlayOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugOverlayOn)
+  setLog(`avatar.debug(${debugOverlayOn})`, true)
+})
+
+document.getElementById("btn-debug-bones")!.addEventListener("click", (e) => {
+  debugBonesOn = !debugBonesOn
+  avatar.debugBones(debugBonesOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugBonesOn)
+  setLog(`avatar.debugBones(${debugBonesOn})`, true)
+})
+
+let debugAxesOn = false
+document.getElementById("btn-debug-axes")!.addEventListener("click", (e) => {
+  debugAxesOn = !debugAxesOn
+  avatar.debugAxes(debugAxesOn)
+  ;(e.currentTarget as HTMLButtonElement).classList.toggle("active", debugAxesOn)
+  setLog(`avatar.debugAxes(${debugAxesOn})`, true)
+})
+
 // ── TTS Demo panel ───────────────────────────────────────────────────────────
 
 const ttsProvider      = document.getElementById("tts-provider")       as HTMLSelectElement
@@ -532,54 +556,3 @@ chatClearBtn.addEventListener("click", () => {
   chatMessages.innerHTML = '<span style="color:#555; font-size:0.72rem; align-self:center;">Start the conversation below</span>'
   setChatStatus("")
 })
-
-// ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
-// async function inspectModel(url: string): Promise<void> {
-//   const isVRM = url.endsWith(".vrm")
-//   const loader = new GLTFLoader()
-//   if (isVRM) loader.register((parser) => new VRMLoaderPlugin(parser))
-//   const gltf = await loader.loadAsync(url)
-
-//   const clips = gltf.animations.map((c) => c.name)
-//   const bones: string[] = []
-//   const morphTargets: Record<string, string[]> = {}
-//   const scene = isVRM ? (gltf.userData["vrm"] as VRM).scene : gltf.scene
-
-//   scene.traverse((obj) => {
-//     if (obj instanceof THREE.Bone) bones.push(obj.name)
-//     if (
-//       (obj instanceof THREE.Mesh || obj instanceof THREE.SkinnedMesh) &&
-//       obj.morphTargetDictionary
-//     ) {
-//       morphTargets[obj.name] = Object.keys(obj.morphTargetDictionary)
-//     }
-//   })
-
-//   let headBoneResult = "NOT FOUND"
-//   if (isVRM) {
-//     const vrm = gltf.userData["vrm"] as VRM
-//     const headNode = vrm.humanoid.getNormalizedBoneNode(VRMHumanBoneName.Head)
-//     headBoneResult = headNode ? `✓ VRM humanoid "${headNode.name}"` : "NOT FOUND"
-//     const expressions = vrm.expressionManager
-//       ? Object.keys(vrm.expressionManager.expressionMap)
-//       : []
-//     console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
-//     console.log("Type: VRM")
-//     console.log("Animation clips:", clips.length ? clips : "NONE")
-//     console.log("VRM expressions:", expressions.length ? expressions : "NONE")
-//     console.log("Raw morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
-//     console.log("Head bone:", headBoneResult)
-//     console.groupEnd()
-//   } else {
-//     const headBone = bones.find((b) => /^(head|mixamorigHead|Bip01_Head|HeadBone|bip_head)/i.test(b))
-//     headBoneResult = headBone ?? "NOT FOUND"
-//     console.group(`%c[mymo] Model inspection: ${url}`, "color:#a78bfa;font-weight:bold")
-//     console.log("Type: GLB")
-//     console.log("Animation clips:", clips.length ? clips : "NONE")
-//     console.log("Bones:", bones.length ? bones : "NONE")
-//     console.log("Morph targets:", Object.keys(morphTargets).length ? morphTargets : "NONE")
-//     console.log("Head bone:", headBoneResult)
-//     console.groupEnd()
-//   }
-// }
-// inspectModel(MODEL).catch(console.error)

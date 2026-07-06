@@ -25,6 +25,10 @@
   let talkingVisible = false
   let ampRAF = 0
 
+  let debugOverlay = false
+  let debugBones   = false
+  let debugAxes    = false
+
   let sizeValue = 400
   let activeFraming: string = INITIAL_FRAMING
   let activeTheme: string   = INITIAL_THEME
@@ -597,6 +601,16 @@
     <button on:click={clearChat} disabled={chatBusy} class="chat-clear-btn">Clear</button>
   </div>
   <div class="chat-status" style="color:{chatStatusColor}">{chatStatus}</div>
+</div>
+
+<hr class="divider">
+<div class="group">
+  <span class="group-label">Debug</span>
+  <div class="btn-row">
+    <button class="btn" class:active={debugOverlay} on:click={() => { debugOverlay = !debugOverlay; av().debug(debugOverlay) }}>🔍 debug overlay</button>
+    <button class="btn" class:active={debugBones}   on:click={() => { debugBones   = !debugBones;   av().debugBones(debugBones) }}>🦴 debug bones</button>
+    <button class="btn" class:active={debugAxes}    on:click={() => { debugAxes    = !debugAxes;    av().debugAxes(debugAxes) }}>📐 debug axes</button>
+  </div>
 </div>
 
 {#if talkingVisible}

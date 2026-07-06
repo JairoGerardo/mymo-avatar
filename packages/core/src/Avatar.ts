@@ -44,6 +44,7 @@ const DEFAULTS: Required<AvatarOptions> = {
   followMouse: false,
   autoHide: false,
   zIndex: 99999,
+  debug: false,
   framingConfig: {},
   themeConfig: {},
 }
@@ -70,6 +71,11 @@ export class Avatar {
 
     this.renderer.setup(this.options)
     this.renderer.addTickCallback((delta) => this.animation.update(delta))
+
+    if (this.options.debug && typeof window !== "undefined") {
+      this.renderer.enableDebug(() => this.animation.getDebugInfo())
+      this.renderer.debugBones(true)
+    }
 
     if (typeof window !== "undefined") this._bindContainerEvents()
 
@@ -123,6 +129,20 @@ export class Avatar {
 
   debugBones(visible?: boolean): this {
     this.renderer.debugBones(visible)
+    return this
+  }
+
+  debugAxes(visible?: boolean): this {
+    this.renderer.debugAxes(visible)
+    return this
+  }
+
+  debug(enabled = true): this {
+    if (enabled) {
+      this.renderer.enableDebug(() => this.animation.getDebugInfo())
+    } else {
+      this.renderer.disableDebug()
+    }
     return this
   }
 

@@ -45,6 +45,11 @@ export class Renderer {
   private userSliceConfig: FramingSliceConfig = {}
   private userThemeConfig: ThemeConfig = {}
   private _webglAvailable = true
+  private _fpsFrames = 0
+  private _fpsTime = 0
+  private _fps = 0
+  private _debugOverlay: HTMLDivElement | null = null
+  private _debugInfoFn: (() => { expression: string | null; gesture: string | null; morphCount: number }) | null = null
 
   get webglAvailable(): boolean { return this._webglAvailable }
 
@@ -214,10 +219,51 @@ export class Renderer {
       this.rafId = requestAnimationFrame(tick)
       const delta = this.lastTime ? (now - this.lastTime) / 1000 : 0
       this.lastTime = now
+
+      if (this._debugOverlay) {
+        this._fpsFrames++
+        this._fpsTime += delta
+        if (this._fpsTime >= 1) {
+          this._fps = Math.round(this._fpsFrames / this._fpsTime)
+          this._fpsFrames = 0
+          this._fpsTime = 0
+        }
+        const info = this._debugInfoFn?.()
+        this._debugOverlay.textContent =
+          `FPS: ${this._fps}\nExpr: ${info?.expression ?? "—"}\nGest: ${info?.gesture ?? "—"}\nMorphs: ${info?.morphCount ?? 0}`
+      }
+
       for (const cb of this.tickCallbacks) cb(delta)
       this.webgl.render(this.scene, this.camera)
     }
     tick(0)
+  }
+
+  enableDebug(fn: () => { expression: string | null; gesture: string | null; morphCount: number }): void {
+    this._debugInfoFn = fn
+    if (this._debugOverlay) return
+    const el = document.createElement("div")
+    el.style.cssText = [
+      "position:fixed",
+      "top:8px",
+      "left:8px",
+      "background:rgba(0,0,0,0.72)",
+      "color:#4ade80",
+      "font:11px/1.6 monospace",
+      "padding:5px 8px",
+      "border-radius:5px",
+      "pointer-events:none",
+      "white-space:pre",
+      "z-index:2147483647",
+    ].join(";")
+    document.body.appendChild(el)
+    this._debugOverlay = el
+  }
+
+  disableDebug(): void {
+    this._debugOverlay?.remove()
+    this._debugOverlay = null
+    this._debugInfoFn = null
   }
 
   private _makeDraggable(): void {
@@ -260,6 +306,8 @@ export class Renderer {
   }
 
   private _skeletonHelper: THREE.SkeletonHelper | null = null
+  private _axesHelper: THREE.AxesHelper | null = null
+  private _axesLabels: THREE.Sprite[] = []
 
   setModel(model: THREE.Object3D): void {
     if (this.currentModel) this.scene.remove(this.currentModel)
@@ -271,7 +319,6 @@ export class Renderer {
     this._applyFraming(this.currentFraming)
   }
 
-  // Toggle bone visualization for debugging — call avatar.renderer.debugBones()
   debugBones(visible?: boolean): void {
     if (!this.currentModel) return
     if (visible === false) {
@@ -284,6 +331,47 @@ export class Renderer {
     } else {
       this._skeletonHelper = new THREE.SkeletonHelper(this.currentModel)
       this.scene.add(this._skeletonHelper)
+    }
+  }
+
+  private _makeAxisLabel(text: string, color: string): THREE.Sprite {
+    const canvas = document.createElement("canvas")
+    canvas.width = 64
+    canvas.height = 64
+    const ctx = canvas.getContext("2d")!
+    ctx.font = "bold 52px monospace"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillStyle = color
+    ctx.fillText(text, 32, 34)
+    const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false })
+    const sprite = new THREE.Sprite(mat)
+    sprite.scale.set(0.12, 0.12, 0.12)
+    return sprite
+  }
+
+  debugAxes(visible?: boolean): void {
+    const remove = () => {
+      if (this._axesHelper) { this.scene.remove(this._axesHelper); this._axesHelper = null }
+      for (const s of this._axesLabels) this.scene.remove(s)
+      this._axesLabels = []
+    }
+    if (visible === false) { remove(); return }
+    if (this._axesHelper) { remove(); return }
+
+    this._axesHelper = new THREE.AxesHelper(1)
+    this.scene.add(this._axesHelper)
+
+    const labels: [string, string, [number, number, number]][] = [
+      ["X", "#ff4444", [1.18, 0, 0]],
+      ["Y", "#44ff44", [0, 1.18, 0]],
+      ["Z", "#4488ff", [0, 0, 1.18]],
+    ]
+    for (const [text, color, pos] of labels) {
+      const sprite = this._makeAxisLabel(text, color)
+      sprite.position.set(...pos)
+      this.scene.add(sprite)
+      this._axesLabels.push(sprite)
     }
   }
 
@@ -375,5 +463,10 @@ export class Renderer {
     this.tickCallbacks = []
     this.webgl?.dispose()
     this.container?.remove()
+    this._debugOverlay?.remove()
+    this._debugOverlay = null
+    if (this._axesHelper) { this.scene.remove(this._axesHelper); this._axesHelper = null }
+    for (const s of this._axesLabels) this.scene.remove(s)
+    this._axesLabels = []
   }
 }

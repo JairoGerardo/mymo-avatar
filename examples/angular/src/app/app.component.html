@@ -195,6 +195,16 @@
   <div class="chat-status" [style.color]="chatStatusColor">{{ chatStatus }}</div>
 </div>
 
+<hr class="divider">
+<div class="group">
+  <span class="group-label">Debug</span>
+  <div class="btn-row">
+    <button [class.active]="debugOverlay" class="btn" (click)="toggleDebug('overlay')">🔍 debug overlay</button>
+    <button [class.active]="debugBones"   class="btn" (click)="toggleDebug('bones')">🦴 debug bones</button>
+    <button [class.active]="debugAxes"    class="btn" (click)="toggleDebug('axes')">📐 debug axes</button>
+  </div>
+</div>
+
 <div *ngIf="talkingVisible" style="display:flex; align-items:center; gap:0.5rem; width:260px;">
   <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
   <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">

@@ -423,6 +423,8 @@ export class AnimationEngine {
   private _gestureDuration = 0
   private _gestureUpdateFn: ((t: number) => void) | null = null
   private _pendingGesture: Gesture | null = null
+  private _currentExpression: Expression | null = null
+  private _currentGestureName: Gesture | null = null
 
   init(model: LoadedModel): void {
     this.dispose()
@@ -586,6 +588,7 @@ export class AnimationEngine {
   // ── Expressions ───────────────────────────────────────────────────────────────
 
   setExpression(expression: Expression, intensity = 1): void {
+    this._currentExpression = expression
     if (this.vrm?.expressionManager) {
       const em = this.vrm.expressionManager
       // Reset all expression presets
@@ -680,11 +683,12 @@ export class AnimationEngine {
     const def = VRM_GESTURES[gesture]
     if (!def || !this.vrm) return
     const vrm = this.vrm
-    this._gestureActive   = true
-    this._gestureElapsed  = 0
-    this._gestureDuration = def.duration
-    this._gestureUpdateFn = (t) => def.fn(t, vrm)
-    this._pendingGesture  = null
+    this._gestureActive      = true
+    this._gestureElapsed     = 0
+    this._gestureDuration    = def.duration
+    this._gestureUpdateFn    = (t) => def.fn(t, vrm)
+    this._pendingGesture     = null
+    this._currentGestureName = gesture
   }
 
   private _tickProceduralGesture(delta: number): void {
@@ -693,9 +697,10 @@ export class AnimationEngine {
     const t = Math.min(this._gestureElapsed / this._gestureDuration, 1)
     this._gestureUpdateFn(t)
     if (t >= 1) {
-      this._gestureActive   = false
-      this._gestureUpdateFn = null
-      this._gestureElapsed  = 0
+      this._gestureActive      = false
+      this._gestureUpdateFn    = null
+      this._gestureElapsed     = 0
+      this._currentGestureName = null
       if (this._pendingGesture) this._startGesture(this._pendingGesture)
     }
   }
@@ -740,6 +745,13 @@ export class AnimationEngine {
 
   hasHeadBone(): boolean {
     return this.headBone !== null
+  }
+
+  getDebugInfo(): { expression: string | null; gesture: string | null; morphCount: number } {
+    const morphCount = this.morphMeshes.reduce(
+      (sum, m) => sum + Object.keys(m.morphTargetDictionary ?? {}).length, 0
+    )
+    return { expression: this._currentExpression, gesture: this._currentGestureName, morphCount }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────────

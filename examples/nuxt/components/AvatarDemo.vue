@@ -25,6 +25,9 @@ let logTimer: ReturnType<typeof setTimeout>
 const logMsg      = ref("Initializing avatar...")
 const logActive   = ref(false)
 const talkingVisible = ref(false)
+const debugOverlay = ref(false)
+const debugBones   = ref(false)
+const debugAxes    = ref(false)
 const sizeValue   = ref(400)
 const activeFraming = ref<string>(INITIAL_FRAMING)
 const activeTheme   = ref<string>(INITIAL_THEME)
@@ -582,6 +585,16 @@ onUnmounted(() => {
       <button @click="clearChat" :disabled="chatBusy" class="chat-clear-btn">Clear</button>
     </div>
     <div class="chat-status" :style="{ color: chatStatusColor }">{{ chatStatus }}</div>
+  </div>
+
+  <hr class="divider">
+  <div class="group">
+    <span class="group-label">Debug</span>
+    <div class="btn-row">
+      <button :class="['btn', { active: debugOverlay }]" @click="() => { debugOverlay = !debugOverlay; av().debug(debugOverlay) }">🔍 debug overlay</button>
+      <button :class="['btn', { active: debugBones }]"   @click="() => { debugBones   = !debugBones;   av().debugBones(debugBones) }">🦴 debug bones</button>
+      <button :class="['btn', { active: debugAxes }]"    @click="() => { debugAxes    = !debugAxes;    av().debugAxes(debugAxes) }">📐 debug axes</button>
+    </div>
   </div>
 
   <div v-if="talkingVisible" style="display:flex; align-items:center; gap:0.5rem; width:260px;">
