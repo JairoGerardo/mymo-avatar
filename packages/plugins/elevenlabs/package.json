@@ -18,6 +18,7 @@
   "files": ["dist", "README.md"],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.json --emitDeclarationOnly",
+    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
@@ -26,6 +27,9 @@
   "devDependencies": {
     "vite": "^5.4.0",
     "vite-plugin-dts": "^4.0.0",
+    "vitest": "^2.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "jsdom": "^24.0.0",
     "typescript": "~5.7.0"
   },
   "repository": {
