@@ -335,7 +335,7 @@ avatar.destroy()  // removes widget from DOM, stops all loops
 
 ## Plugins
 
-### Official TTS plugins
+### Built-in TTS plugins
 
 | Package | Provider | Install |
 |---|---|---|
@@ -988,7 +988,7 @@ Missing features degrade gracefully and are skipped silently after the initial l
 
 ### Built-in models
 
-> **Coming in v1.1.** Named models (`maya`, `robot`, `fox`) will be published as separate npm packages (`@mymo/model-maya`, etc.) and resolved from CDN automatically. Use a direct URL in the meantime:
+> **Coming in v1.1.** Named models (`maya`, `robot`, `fox`) will be published as separate npm packages (`@mymosdk/model-maya`, etc.) and resolved from CDN automatically. Use a direct URL in the meantime:
 
 ```ts
 // Use any GLB or VRM by URL today
