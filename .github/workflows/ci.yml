@@ -30,7 +30,7 @@ jobs:
         run: pnpm lint
 
       - name: Build core
-        run: pnpm --filter @mymo/avatar build
+        run: pnpm --filter @mymosdk/avatar build
 
       - name: Typecheck
         run: pnpm typecheck
