@@ -10,7 +10,26 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/types/**"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/**/*.d.ts",
+        "src/types/**",
+        // WebGL-dependent: untestable in jsdom
+        "src/renderer/**",
+        "src/loader/**",
+        // Framework adapters: require peer runtime environments
+        "src/angular/**",
+        "src/react/**",
+        "src/svelte/**",
+        "src/vue/**",
+        "src/index.ts",
+      ],
+      thresholds: {
+        statements: 50,
+        branches: 75,
+        functions: 70,
+        lines: 50,
+      },
     },
   },
 })
