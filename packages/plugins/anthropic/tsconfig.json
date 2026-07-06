@@ -5,7 +5,7 @@
     "outDir": "dist",
     "composite": true,
     "paths": {
-      "@mymosdk/avatar": ["../../core/src/index.ts"]
+      "@mymosdk/avatar": ["../../core/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

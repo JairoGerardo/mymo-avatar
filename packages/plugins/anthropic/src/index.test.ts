@@ -16,12 +16,12 @@ describe("AnthropicPlugin — security guard", () => {
   it("warns when apiKey is used in a browser context (window is defined)", () => {
     new AnthropicPlugin({ apiKey: "sk-ant-test" })
     expect(warnSpy).toHaveBeenCalledOnce()
-    expect(warnSpy.mock.calls[0][0]).toContain("proxyUrl")
+    expect(warnSpy.mock.calls[0]![0]).toContain("proxyUrl")
   })
 
   it("warning message mentions the security docs link", () => {
     new AnthropicPlugin({ apiKey: "sk-ant-test" })
-    expect(warnSpy.mock.calls[0][0]).toContain("github.com/JairoGerardo/mymo-avatar")
+    expect(warnSpy.mock.calls[0]![0]).toContain("github.com/JairoGerardo/mymo-avatar")
   })
 
   it("does not warn when only proxyUrl is provided", () => {

@@ -93,12 +93,12 @@ export class AnthropicPlugin implements AvatarPlugin {
 
   private async _streamFromAPI(messages: ChatMessage[]): Promise<string> {
     const { default: Anthropic } = await import("@anthropic-ai/sdk")
-    const client = new Anthropic({ apiKey: this.opts.apiKey, dangerouslyAllowBrowser: true })
+    const client = new Anthropic({ apiKey: this.opts.apiKey })
 
     const stream = client.messages.stream({
       model: this.opts.model!,
       max_tokens: this.opts.maxTokens!,
-      system: this.opts.systemPrompt,
+      ...(this.opts.systemPrompt !== undefined && { system: this.opts.systemPrompt }),
       messages,
     })
 
