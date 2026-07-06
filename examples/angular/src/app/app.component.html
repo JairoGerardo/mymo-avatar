@@ -149,6 +149,52 @@
   <div class="tts-status" [style.color]="ttsStatusColor">{{ ttsStatus }}</div>
 </div>
 
+<hr class="divider" style="max-width:680px; width:100%;" />
+
+<!-- Chat Demo -->
+<div class="chat-panel">
+  <span class="group-label chat-label">Chat Demo — Anthropic Claude</span>
+  <div class="tts-row">
+    <label class="tts-field-label">API Key</label>
+    <input type="password" [value]="chatApiKey" (input)="chatApiKey = $any($event.target).value"
+      placeholder="sk-ant-…" class="tts-input" autocomplete="off" />
+  </div>
+  <div class="tts-row">
+    <label class="tts-field-label">Model</label>
+    <select [value]="chatModel" (change)="chatModel = $any($event.target).value" class="tts-input">
+      <option *ngFor="let m of chatModels" [value]="m">{{ m }}</option>
+    </select>
+  </div>
+  <div class="tts-row">
+    <label class="tts-field-label">System</label>
+    <input type="text" [value]="chatSystem" (input)="chatSystem = $any($event.target).value"
+      placeholder="You are a helpful assistant." class="tts-input" />
+  </div>
+  <div class="tts-row">
+    <label class="tts-field-label">TTS</label>
+    <label style="display:flex;align-items:center;gap:0.4rem;color:#aaa;font-size:0.72rem;cursor:pointer;">
+      <input type="checkbox" [checked]="chatTts" (change)="chatTts = $any($event.target).checked" />
+      Read reply aloud (uses TTS Demo provider &amp; key)
+    </label>
+  </div>
+  <div class="chat-messages" #chatMessagesRef>
+    <div *ngIf="chatHistory.length === 0" class="chat-empty">No messages yet — say hello!</div>
+    <div *ngFor="let m of chatHistory" [class]="'chat-msg ' + m.role">
+      <span class="chat-role">{{ m.role === 'user' ? 'You' : 'Claude' }}</span>
+      <span class="chat-content">{{ m.content }}</span>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <textarea [value]="chatInput" (input)="chatInput = $any($event.target).value"
+      (keydown)="onChatKeydown($event)"
+      placeholder="Ask something… (Enter to send, Shift+Enter for newline)"
+      class="chat-input" [disabled]="chatBusy" rows="2"></textarea>
+    <button (click)="handleChatSend()" [disabled]="chatBusy" class="chat-send-btn">Send</button>
+    <button (click)="clearChat()" [disabled]="chatBusy" class="chat-clear-btn">Clear</button>
+  </div>
+  <div class="chat-status" [style.color]="chatStatusColor">{{ chatStatus }}</div>
+</div>
+
 <div *ngIf="talkingVisible" style="display:flex; align-items:center; gap:0.5rem; width:260px;">
   <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
   <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">

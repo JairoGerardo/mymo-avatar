@@ -395,6 +395,144 @@ ttsSpeakBtn.addEventListener("click", async () => {
   }
 })
 
+// ── Chat Demo (Anthropic) ────────────────────────────────────────────────────
+
+const chatApiKey    = document.getElementById("chat-apikey")    as HTMLInputElement
+const chatModel     = document.getElementById("chat-model")     as HTMLSelectElement
+const chatSystem    = document.getElementById("chat-system")    as HTMLInputElement
+const chatTtsCheck  = document.getElementById("chat-tts-enabled") as HTMLInputElement
+const chatMessages  = document.getElementById("chat-messages")!
+const chatInput     = document.getElementById("chat-input")     as HTMLTextAreaElement
+const chatSendBtn   = document.getElementById("chat-send-btn")  as HTMLButtonElement
+const chatClearBtn  = document.getElementById("chat-clear-btn") as HTMLButtonElement
+const chatStatus    = document.getElementById("chat-status")!
+
+type ChatMessage = { role: "user" | "assistant"; content: string }
+const history: ChatMessage[] = []
+
+function appendMessage(role: "user" | "assistant", content: string) {
+  const msg = document.createElement("div")
+  msg.className = `chat-msg ${role}`
+  msg.innerHTML = `<span class="chat-msg-role">${role}</span><span class="chat-msg-text">${content.replace(/</g, "&lt;")}</span>`
+  chatMessages.appendChild(msg)
+  chatMessages.scrollTop = chatMessages.scrollHeight
+}
+
+function setChatStatus(msg: string, color = "#555") {
+  chatStatus.textContent = msg
+  chatStatus.style.color = color
+}
+
+async function streamAnthropicSSE(messages: ChatMessage[]): Promise<string> {
+  const apiKey = chatApiKey.value.trim()
+  if (!apiKey) throw new Error("Paste your Anthropic API key first")
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: chatModel.value,
+      max_tokens: 1024,
+      system: chatSystem.value.trim() || undefined,
+      messages,
+      stream: true,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+    throw new Error(err.error?.message ?? `Anthropic error ${res.status}`)
+  }
+
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let fullText = ""
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    const lines = decoder.decode(value).split("\n").filter(l => l.startsWith("data: "))
+    for (const line of lines) {
+      try {
+        const json = JSON.parse(line.slice(6)) as {
+          type?: string
+          delta?: { type?: string; text?: string }
+        }
+        if (json.type === "content_block_delta" && json.delta?.type === "text_delta") {
+          fullText += json.delta.text ?? ""
+        }
+      } catch { /* skip malformed lines */ }
+    }
+  }
+
+  return fullText
+}
+
+async function handleSend() {
+  const text = chatInput.value.trim()
+  if (!text) return
+
+  chatInput.value = ""
+  chatSendBtn.disabled = true
+  appendMessage("user", text)
+  history.push({ role: "user", content: text })
+
+  // Remove placeholder if present
+  const placeholder = chatMessages.querySelector("span")
+  if (placeholder) placeholder.remove()
+
+  avatar.setState("typing")
+  setChatStatus("Claude is thinking…", "#a78bfa")
+
+  try {
+    const reply = await streamAnthropicSSE(history)
+    history.push({ role: "assistant", content: reply })
+    appendMessage("assistant", reply)
+    avatar.clearState()
+    setChatStatus("")
+
+    if (chatTtsCheck.checked && reply) {
+      const apiKey = ttsApiKey.value.trim()
+      if (apiKey) {
+        avatar.setState("processing")
+        setChatStatus("Speaking…", "#60a5fa")
+        try {
+          const audio = await fetchTTSAudio(reply)
+          await avatar.talk(audio)
+        } catch { /* TTS errors are non-fatal */ }
+        avatar.clearState()
+        setChatStatus("")
+      }
+    }
+  } catch (err) {
+    avatar.clearState()
+    const msg = err instanceof Error ? err.message : String(err)
+    setChatStatus(`Error: ${msg}`, "#f87171")
+  } finally {
+    chatSendBtn.disabled = false
+  }
+}
+
+chatSendBtn.addEventListener("click", () => { void handleSend() })
+
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault()
+    void handleSend()
+  }
+})
+
+chatClearBtn.addEventListener("click", () => {
+  history.length = 0
+  chatMessages.innerHTML = '<span style="color:#555; font-size:0.72rem; align-self:center;">Start the conversation below</span>'
+  setChatStatus("")
+})
+
 // ── Model diagnostic — uncomment to inspect a GLB/VRM, re-comment when done ──
 // async function inspectModel(url: string): Promise<void> {
 //   const isVRM = url.endsWith(".vrm")

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from "vue"
+import { ref, reactive, computed, nextTick, onMounted, onUnmounted } from "vue"
 import { Avatar } from "@mymosdk/avatar"
 import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymosdk/avatar"
 
@@ -205,6 +205,110 @@ async function handleSpeak() {
   } finally {
     ttsBusy.value = false
   }
+}
+
+// ── Chat Demo ────────────────────────────────────────────────────────────────
+
+type ChatMsg = { role: "user" | "assistant"; content: string }
+
+const chatHistory     = ref<ChatMsg[]>([])
+const chatApiKey      = ref("")
+const chatModel       = ref("claude-sonnet-4-6")
+const chatSystem      = ref("You are a helpful assistant.")
+const chatTts         = ref(false)
+const chatInput       = ref("")
+const chatBusy        = ref(false)
+const chatStatus      = ref("")
+const chatStatusColor = ref("#555")
+const chatMessagesEl  = ref<HTMLElement | null>(null)
+
+async function streamAnthropicSSE(messages: ChatMsg[]): Promise<string> {
+  if (!chatApiKey.value.trim()) throw new Error("Paste your Anthropic API key first")
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": chatApiKey.value,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: chatModel.value,
+      max_tokens: 1024,
+      system: chatSystem.value || "You are a helpful assistant.",
+      stream: true,
+      messages,
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+    throw new Error(err.error?.message ?? `Anthropic error ${res.status}`)
+  }
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let fullText = ""
+  let buffer = ""
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split("\n")
+    buffer = lines.pop() ?? ""
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue
+      const data = line.slice(6).trim()
+      if (data === "[DONE]") break
+      try {
+        const evt = JSON.parse(data)
+        if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+          fullText += evt.delta.text
+        }
+      } catch {}
+    }
+  }
+  return fullText
+}
+
+async function handleChatSend() {
+  const text = chatInput.value.trim()
+  if (!text || chatBusy.value) return
+  chatBusy.value = true
+  chatHistory.value = [...chatHistory.value, { role: "user", content: text }]
+  chatInput.value = ""
+  chatStatus.value = "Thinking…"
+  chatStatusColor.value = "#60a5fa"
+  avatar.typing()
+  await nextTick()
+  if (chatMessagesEl.value) chatMessagesEl.value.scrollTop = chatMessagesEl.value.scrollHeight
+  try {
+    const reply = await streamAnthropicSSE(chatHistory.value.map(m => ({ role: m.role, content: m.content })))
+    chatHistory.value = [...chatHistory.value, { role: "assistant", content: reply }]
+    chatStatus.value = ""
+    avatar.clearState()
+    await nextTick()
+    if (chatMessagesEl.value) chatMessagesEl.value.scrollTop = chatMessagesEl.value.scrollHeight
+    if (chatTts.value) {
+      try {
+        const audio = await fetchTTSAudio(ttsProvider.value, ttsApiKey.value, ttsVoice.value, reply)
+        await avatar.talk(audio)
+      } catch (e) {
+        chatStatus.value = `TTS error: ${e instanceof Error ? e.message : String(e)}`
+        chatStatusColor.value = "#f87171"
+      }
+    }
+  } catch (err) {
+    chatStatus.value = `Error: ${err instanceof Error ? err.message : String(err)}`
+    chatStatusColor.value = "#f87171"
+    avatar.clearState()
+  } finally {
+    chatBusy.value = false
+  }
+}
+
+function clearChat() {
+  chatHistory.value = []
+  chatStatus.value = ""
+  chatStatusColor.value = "#555"
 }
 
 function onFcFromInput(e: Event) {
@@ -433,6 +537,53 @@ onUnmounted(() => {
     </div>
   </div>
 
+  <hr class="divider" style="max-width:680px; width:100%;" />
+
+  <!-- Chat Demo -->
+  <div class="chat-panel">
+    <span class="group-label chat-label">Chat Demo — Anthropic Claude</span>
+    <div class="tts-row">
+      <label class="tts-field-label">API Key</label>
+      <input type="password" :value="chatApiKey" @input="chatApiKey = ($event.target as HTMLInputElement).value"
+        placeholder="sk-ant-…" class="tts-input" autocomplete="off" />
+    </div>
+    <div class="tts-row">
+      <label class="tts-field-label">Model</label>
+      <select :value="chatModel" @change="chatModel = ($event.target as HTMLSelectElement).value" class="tts-input">
+        <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+        <option value="claude-opus-4-7">claude-opus-4-7</option>
+      </select>
+    </div>
+    <div class="tts-row">
+      <label class="tts-field-label">System</label>
+      <input type="text" :value="chatSystem" @input="chatSystem = ($event.target as HTMLInputElement).value"
+        placeholder="You are a helpful assistant." class="tts-input" />
+    </div>
+    <div class="tts-row">
+      <label class="tts-field-label">TTS</label>
+      <label style="display:flex;align-items:center;gap:0.4rem;color:#aaa;font-size:0.72rem;cursor:pointer;">
+        <input type="checkbox" :checked="chatTts" @change="chatTts = ($event.target as HTMLInputElement).checked" />
+        Read reply aloud (uses TTS Demo provider &amp; key)
+      </label>
+    </div>
+    <div class="chat-messages" ref="chatMessagesEl">
+      <div v-if="chatHistory.length === 0" class="chat-empty">No messages yet — say hello!</div>
+      <div v-for="(m, i) in chatHistory" :key="i" :class="['chat-msg', m.role]">
+        <span class="chat-role">{{ m.role === 'user' ? 'You' : 'Claude' }}</span>
+        <span class="chat-content">{{ m.content }}</span>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea v-model="chatInput" @keydown.enter.exact.prevent="handleChatSend"
+        placeholder="Ask something… (Enter to send, Shift+Enter for newline)"
+        class="chat-input" :disabled="chatBusy" rows="2" />
+      <button @click="handleChatSend" :disabled="chatBusy" class="chat-send-btn">Send</button>
+      <button @click="clearChat" :disabled="chatBusy" class="chat-clear-btn">Clear</button>
+    </div>
+    <div class="chat-status" :style="{ color: chatStatusColor }">{{ chatStatus }}</div>
+  </div>
+
   <div v-if="talkingVisible" style="display:flex; align-items:center; gap:0.5rem; width:260px;">
     <span style="font-size:0.7rem; color:#a78bfa;">🎙️ talking</span>
     <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
@@ -527,4 +678,48 @@ input[type="color"] {
 }
 .tts-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .tts-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }
+
+.chat-panel {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(167,139,250,0.25); border-radius: 12px;
+  background: rgba(167,139,250,0.04); width: 100%; max-width: 680px;
+}
+.chat-label { color: #a78bfa; }
+.chat-messages {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  max-height: 260px; overflow-y: auto;
+  padding: 0.5rem; border: 1px solid rgba(167,139,250,0.15);
+  border-radius: 8px; background: rgba(0,0,0,0.15);
+}
+.chat-empty { font-size: 0.72rem; color: #555; text-align: center; padding: 1rem 0; }
+.chat-msg { display: flex; flex-direction: column; gap: 0.15rem; }
+.chat-msg.user { align-items: flex-end; }
+.chat-msg.assistant { align-items: flex-start; }
+.chat-role { font-size: 0.62rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+.chat-content {
+  font-size: 0.8rem; line-height: 1.45; padding: 0.4rem 0.65rem;
+  border-radius: 8px; max-width: 90%; white-space: pre-wrap; word-break: break-word;
+}
+.chat-msg.user .chat-content { background: rgba(167,139,250,0.15); color: #e0d4ff; }
+.chat-msg.assistant .chat-content { background: rgba(96,165,250,0.1); color: #d0e8ff; }
+.chat-input-row { display: flex; gap: 0.4rem; align-items: flex-end; }
+.chat-input {
+  flex: 1; padding: 0.4rem 0.6rem; resize: none;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.8rem; font-family: inherit;
+}
+.chat-input:disabled { opacity: 0.5; }
+.chat-send-btn {
+  border: 1px solid rgba(167,139,250,0.4) !important;
+  background: rgba(167,139,250,0.12) !important;
+  color: #c4b5fd !important; padding: 0.4rem 0.75rem; font-size: 0.8rem; white-space: nowrap;
+}
+.chat-clear-btn {
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  background: rgba(255,255,255,0.04) !important;
+  color: #666 !important; padding: 0.4rem 0.6rem; font-size: 0.8rem; white-space: nowrap;
+}
+.chat-send-btn:disabled, .chat-clear-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.chat-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }
 </style>

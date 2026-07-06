@@ -185,6 +185,87 @@ async function handleSpeak() {
   }
 }
 
+// ── Chat Demo ─────────────────────────────────────────────────────────────────
+
+type ChatMsg = { role: "user" | "assistant"; content: string }
+const chatHistory    = ref<ChatMsg[]>([])
+const chatApiKey     = ref("")
+const chatModel      = ref("claude-sonnet-4-6")
+const chatSystem     = ref("You are a helpful avatar assistant. Keep replies short and friendly.")
+const chatTts        = ref(false)
+const chatInput      = ref("")
+const chatBusy       = ref(false)
+const chatStatus     = ref("")
+const chatStatusColor = ref("#555")
+
+async function streamAnthropicSSE(messages: ChatMsg[]): Promise<string> {
+  if (!chatApiKey.value.trim()) throw new Error("Paste your Anthropic API key first")
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": chatApiKey.value,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ model: chatModel.value, max_tokens: 1024, system: chatSystem.value || undefined, messages, stream: true }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+    throw new Error(err.error?.message ?? `Anthropic error ${res.status}`)
+  }
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let fullText = ""
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    for (const line of decoder.decode(value).split("\n").filter(l => l.startsWith("data: "))) {
+      try {
+        const j = JSON.parse(line.slice(6)) as { type?: string; delta?: { type?: string; text?: string } }
+        if (j.type === "content_block_delta" && j.delta?.type === "text_delta") fullText += j.delta.text ?? ""
+      } catch { /* skip */ }
+    }
+  }
+  return fullText
+}
+
+async function handleSend() {
+  const text = chatInput.value.trim()
+  if (!text || chatBusy.value) return
+  chatHistory.value = [...chatHistory.value, { role: "user", content: text }]
+  chatInput.value = ""
+  chatBusy.value = true
+  chatStatus.value = "Claude is thinking…"
+  chatStatusColor.value = "#a78bfa"
+  av().setState("typing")
+  try {
+    const reply = await streamAnthropicSSE(chatHistory.value)
+    chatHistory.value = [...chatHistory.value, { role: "assistant", content: reply }]
+    av().clearState()
+    chatStatus.value = ""
+    if (chatTts.value && reply) {
+      av().setState("processing")
+      chatStatus.value = "Speaking…"
+      chatStatusColor.value = "#60a5fa"
+      try { const audio = await fetchTTSAudio(ttsProvider.value, ttsApiKey.value, ttsVoice.value, reply); await av().talk(audio) } catch { /* non-fatal */ }
+      av().clearState()
+      chatStatus.value = ""
+    }
+  } catch (err) {
+    av().clearState()
+    chatStatus.value = `Error: ${err instanceof Error ? err.message : String(err)}`
+    chatStatusColor.value = "#f87171"
+  } finally {
+    chatBusy.value = false
+  }
+}
+
+function clearChat() {
+  chatHistory.value = []
+  chatStatus.value = ""
+}
+
 async function fetchTTSAudio(provider: string, apiKey: string, voice: string, text: string): Promise<ArrayBuffer> {
   if (!apiKey.trim()) throw new Error("Paste your API key first")
   if (provider === "openai") {
@@ -406,6 +487,54 @@ async function fetchTTSAudio(provider: string, apiKey: string, voice: string, te
         <div class="tts-status" :style="{ color: ttsStatusColor }">{{ ttsStatus }}</div>
       </div>
 
+      <hr class="divider" />
+
+      <!-- Chat Demo -->
+      <div class="chat-panel">
+        <span class="group-label chat-label">Chat Demo — Anthropic Claude</span>
+        <p class="tts-warning">
+          ⚠️ For testing only — paste your key to try Claude directly from the browser.<br>
+          Never ship API keys in frontend code. Use a backend proxy in production.
+        </p>
+        <div class="tts-row">
+          <label class="tts-field-label">API Key</label>
+          <input type="password" :value="chatApiKey" @input="chatApiKey = ($event.target as HTMLInputElement).value"
+            placeholder="sk-ant-…" class="tts-input" autocomplete="off" />
+        </div>
+        <div class="tts-row">
+          <label class="tts-field-label">Model</label>
+          <select :value="chatModel" @change="chatModel = ($event.target as HTMLSelectElement).value" class="tts-input">
+            <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+            <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+            <option value="claude-opus-4-7">claude-opus-4-7</option>
+          </select>
+        </div>
+        <div class="tts-row">
+          <label class="tts-field-label">System</label>
+          <input type="text" :value="chatSystem" @input="chatSystem = ($event.target as HTMLInputElement).value"
+            placeholder="You are a helpful avatar assistant." class="tts-input" />
+        </div>
+        <label class="chat-check">
+          <input type="checkbox" :checked="chatTts" @change="chatTts = ($event.target as HTMLInputElement).checked" />
+          Speak response via TTS (uses provider + key from TTS Demo above)
+        </label>
+        <div class="chat-messages" ref="chatMessagesEl">
+          <span v-if="chatHistory.length === 0" class="chat-empty">Start the conversation below</span>
+          <div v-for="(m, i) in chatHistory" :key="i" :class="['chat-msg', m.role]">
+            <span class="chat-msg-role">{{ m.role }}</span>
+            <span class="chat-msg-text">{{ m.content }}</span>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <textarea :value="chatInput" @input="chatInput = ($event.target as HTMLTextAreaElement).value"
+            @keydown.enter.exact.prevent="handleSend"
+            placeholder="Type your message…" rows="1" class="chat-input" />
+          <button @click="handleSend" :disabled="chatBusy" class="chat-send-btn">Send ↵</button>
+          <button @click="clearChat" class="chat-clear-btn">clear</button>
+        </div>
+        <div class="chat-status" :style="{ color: chatStatusColor }">{{ chatStatus }}</div>
+      </div>
+
     </div>
 
     <div v-if="talking" class="amp-wrap">
@@ -604,4 +733,36 @@ input[type="color"] {
 }
 .tts-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .tts-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }
+
+.chat-panel {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(167,139,250,0.25); border-radius: 12px;
+  background: rgba(167,139,250,0.04); width: 100%;
+}
+.chat-label { color: #a78bfa; }
+.chat-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #888; cursor: pointer; }
+.chat-messages {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  max-height: 180px; overflow-y: auto; padding: 0.5rem;
+  background: rgba(0,0,0,0.2); border-radius: 8px;
+  font-size: 0.78rem; line-height: 1.5;
+}
+.chat-empty { color: #555; font-size: 0.72rem; align-self: center; }
+.chat-msg { display: flex; flex-direction: column; gap: 0.15rem; }
+.chat-msg-role { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+.chat-msg.user .chat-msg-role { color: #60a5fa; }
+.chat-msg.assistant .chat-msg-role { color: #a78bfa; }
+.chat-msg-text { color: #e0e0ff; }
+.chat-input-row { display: flex; gap: 0.5rem; align-items: flex-end; width: 100%; }
+.chat-input {
+  flex: 1; padding: 0.4rem 0.6rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 6px; color: #e0e0ff; font-size: 0.82rem;
+  resize: vertical; min-height: 38px; font-family: inherit;
+}
+.chat-send-btn { padding: 0.4rem 0.8rem; white-space: nowrap; }
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.chat-clear-btn { padding: 0.25rem 0.55rem; border-color: rgba(255,255,255,0.1) !important; background: transparent !important; color: #555 !important; font-size: 0.7rem; }
+.chat-status { font-size: 0.72rem; font-family: monospace; text-align: center; min-height: 1rem; }
 </style>

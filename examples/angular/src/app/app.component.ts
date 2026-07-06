@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core"
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Avatar } from "@mymosdk/avatar"
 import type { AvatarPosition, AvatarFraming, AvatarTheme } from "@mymosdk/avatar"
@@ -61,6 +61,19 @@ export class AppComponent implements OnInit, OnDestroy {
   ttsStatus        = ""
   ttsStatusColor   = "#555"
   readonly ttsOpenAIVoices = ["alloy","echo","fable","nova","onyx","shimmer"]
+
+  // ── Chat Demo ──────────────────────────────────────────────────────────────
+  chatHistory: Array<{ role: "user" | "assistant"; content: string }> = []
+  chatApiKey        = ""
+  chatModel         = "claude-sonnet-4-6"
+  chatSystem        = "You are a helpful assistant."
+  chatTts           = false
+  chatInput         = ""
+  chatBusy          = false
+  chatStatus        = ""
+  chatStatusColor   = "#555"
+  @ViewChild("chatMessagesRef") chatMessagesRef?: ElementRef<HTMLElement>
+  readonly chatModels = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001", "claude-opus-4-7"]
 
   readonly expressions = ["smile","happy","sad","angry","surprised","thinking","confused","sleep","idle"]
   readonly gestures    = ["wave","nod","yes","no","shakeHead","clap","jump","dance","thumbsUp"]
@@ -266,6 +279,104 @@ export class AppComponent implements OnInit, OnDestroy {
       this.ttsStatusColor = "#f87171"
     } finally {
       this.ttsBusy = false
+    }
+  }
+
+  private async streamAnthropicSSE(
+    messages: Array<{ role: "user" | "assistant"; content: string }>
+  ): Promise<string> {
+    if (!this.chatApiKey.trim()) throw new Error("Paste your Anthropic API key first")
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": this.chatApiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: this.chatModel,
+        max_tokens: 1024,
+        system: this.chatSystem || "You are a helpful assistant.",
+        stream: true,
+        messages,
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: { message?: string } }
+      throw new Error(err.error?.message ?? `Anthropic error ${res.status}`)
+    }
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let fullText = ""
+    let buffer = ""
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split("\n")
+      buffer = lines.pop() ?? ""
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue
+        const data = line.slice(6).trim()
+        if (data === "[DONE]") break
+        try {
+          const evt = JSON.parse(data)
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            fullText += evt.delta.text
+          }
+        } catch {}
+      }
+    }
+    return fullText
+  }
+
+  async handleChatSend(): Promise<void> {
+    const text = this.chatInput.trim()
+    if (!text || this.chatBusy) return
+    this.chatBusy = true
+    this.chatHistory = [...this.chatHistory, { role: "user", content: text }]
+    this.chatInput = ""
+    this.chatStatus = "Thinking…"
+    this.chatStatusColor = "#60a5fa"
+    this.avatar.typing()
+    if (this.chatMessagesRef) this.chatMessagesRef.nativeElement.scrollTop = this.chatMessagesRef.nativeElement.scrollHeight
+    try {
+      const reply = await this.streamAnthropicSSE(
+        this.chatHistory.map(m => ({ role: m.role, content: m.content }))
+      )
+      this.chatHistory = [...this.chatHistory, { role: "assistant", content: reply }]
+      this.chatStatus = ""
+      this.avatar.clearState()
+      if (this.chatMessagesRef) this.chatMessagesRef.nativeElement.scrollTop = this.chatMessagesRef.nativeElement.scrollHeight
+      if (this.chatTts) {
+        try {
+          const audio = await this.fetchTTSAudio(this.ttsProvider, this.ttsApiKey, this.ttsVoice, reply)
+          await this.avatar.talk(audio)
+        } catch (e) {
+          this.chatStatus = `TTS error: ${e instanceof Error ? e.message : String(e)}`
+          this.chatStatusColor = "#f87171"
+        }
+      }
+    } catch (err) {
+      this.chatStatus = `Error: ${err instanceof Error ? err.message : String(err)}`
+      this.chatStatusColor = "#f87171"
+      this.avatar.clearState()
+    } finally {
+      this.chatBusy = false
+    }
+  }
+
+  clearChat(): void {
+    this.chatHistory = []
+    this.chatStatus = ""
+    this.chatStatusColor = "#555"
+  }
+
+  onChatKeydown(e: KeyboardEvent): void {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      this.handleChatSend()
     }
   }
 
