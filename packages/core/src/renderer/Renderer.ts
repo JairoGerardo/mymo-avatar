@@ -45,6 +45,7 @@ export class Renderer {
   private userSliceConfig: FramingSliceConfig = {}
   private userThemeConfig: ThemeConfig = {}
   private _webglAvailable = true
+  private _reducedMotion = false
   private _fpsFrames = 0
   private _fpsTime = 0
   private _fps = 0
@@ -52,6 +53,7 @@ export class Renderer {
   private _debugInfoFn: (() => { expression: string | null; gesture: string | null; morphCount: number }) | null = null
 
   get webglAvailable(): boolean { return this._webglAvailable }
+  get prefersReducedMotion(): boolean { return this._reducedMotion }
 
   constructor() {
     this.scene = new THREE.Scene()
@@ -72,6 +74,10 @@ export class Renderer {
 
   setup(options: Required<AvatarOptions>): void {
     if (typeof window === "undefined") return
+
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    this._reducedMotion = mq?.matches ?? false
+    mq?.addEventListener("change", (e) => { this._reducedMotion = e.matches })
 
     if (!this._isWebGLSupported()) {
       this._webglAvailable = false
@@ -114,6 +120,11 @@ export class Renderer {
     s.flexDirection = "column"
     s.gap = "6px"
 
+    this.container.setAttribute("role", "img")
+    this.container.setAttribute("aria-label", options.ariaLabel || "Interactive avatar")
+    this.container.setAttribute("data-mymo", "")
+    this.container.tabIndex = 0
+
     this.currentTheme = options.theme
     this._applyTheme(options.theme, options.size)
     this._applyPosition(options.position)
@@ -152,6 +163,17 @@ export class Renderer {
     s.cursor = "pointer"
     s.userSelect = "none"
     s.boxSizing = "border-box"
+
+    this.container.setAttribute("role", "img")
+    this.container.setAttribute("aria-label", options.ariaLabel || "Interactive avatar")
+    this.container.setAttribute("data-mymo", "")
+    this.container.tabIndex = 0
+    this.container.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        this.container.click()
+      }
+    })
 
     this.currentTheme = options.theme
     this._applyTheme(options.theme, options.size)
@@ -200,6 +222,10 @@ export class Renderer {
         }
         [data-state] { animation: mymo-ring 1.2s ease-out infinite; }
         [data-state=""] { animation: none; }
+        [data-mymo]:focus-visible { outline: 3px solid #4f8ef7; outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) {
+          [data-state] { animation: none; }
+        }
       `
       document.head.appendChild(style)
     }

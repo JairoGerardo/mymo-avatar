@@ -47,6 +47,7 @@ const DEFAULTS: Required<AvatarOptions> = {
   debug: false,
   framingConfig: {},
   themeConfig: {},
+  ariaLabel: "",
 }
 
 export class Avatar {

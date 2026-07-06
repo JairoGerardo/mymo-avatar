@@ -80,6 +80,8 @@ export interface AvatarOptions {
   framingConfig?: FramingSliceConfig
   /** Override background/shadow for light and dark themes */
   themeConfig?: ThemeConfig
+  /** Accessible label read by screen readers (default: "Interactive avatar") */
+  ariaLabel?: string
 }
 
 export interface AvatarApi {

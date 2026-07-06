@@ -117,6 +117,7 @@ avatar.load("https://github.com/user/repo/releases/download/tag/file.vrm")
 | `autoHide` | `boolean` | `false` | Hide widget when user scrolls |
 | `zIndex` | `number` | `99999` | CSS z-index of the widget |
 | `debug` | `boolean` | `false` | Enable debug overlay + skeleton helper on startup |
+| `ariaLabel` | `string` | `"Interactive avatar"` | Accessible label read by screen readers |
 
 ---
 
@@ -1062,6 +1063,42 @@ import type {
   FramingModeConfig,
   ThemeConfig,
 } from "@mymosdk/avatar"
+```
+
+---
+
+## Accessibility
+
+The avatar widget is designed to be usable by everyone.
+
+**Screen readers** — the container element carries `role="img"` and an `aria-label`. Customize the label to describe your avatar in context:
+
+```ts
+const avatar = new Avatar({
+  model: "https://...",
+  ariaLabel: "Mymo — your virtual assistant",
+})
+```
+
+**Keyboard navigation** — the widget is focusable (`tabIndex=0`). Users can Tab to it and press Enter or Space to trigger a click, which fires the `"click"` event just like a mouse click:
+
+```ts
+avatar.on("click", () => avatar.wave())
+// ↑ triggered by mouse click AND keyboard Enter/Space
+```
+
+A focus ring appears automatically via `:focus-visible` (no ring on mouse click).
+
+**Reduced motion** — the SDK detects `prefers-reduced-motion: reduce` at startup and listens for OS-level changes at runtime. When active, the state-ring pulse animation is disabled. You can also read the value to conditionally reduce other animations in your app:
+
+```ts
+// After setup, check the current preference
+const avatar = new Avatar({ model: "https://..." })
+
+// The renderer exposes the value — useful if you drive animations yourself
+// avatar.renderer.prefersReducedMotion  ← internal; use OS media query directly
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+if (!reduced) avatar.dance()
 ```
 
 ---
